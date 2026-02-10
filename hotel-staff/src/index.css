@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Luxurious Hotel Theme - Warm Golds, Rich Creams, Deep Navy */
+    --background: 40 33% 98%;
+    --foreground: 220 30% 15%;
+
+    --card: 40 30% 99%;
+    --card-foreground: 220 30% 15%;
+
+    --popover: 40 30% 99%;
+    --popover-foreground: 220 30% 15%;
+
+    /* Rich Gold - Primary brand color */
+    --primary: 38 70% 45%;
+    --primary-foreground: 40 30% 99%;
+
+    /* Warm Cream - Secondary surfaces */
+    --secondary: 40 25% 94%;
+    --secondary-foreground: 220 30% 20%;
+
+    /* Muted warm tones */
+    --muted: 40 20% 92%;
+    --muted-foreground: 220 15% 45%;
+
+    /* Deep Navy accent */
+    --accent: 220 45% 20%;
+    --accent-foreground: 40 30% 98%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: 38 70% 45%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar - Deep Navy */
+    --sidebar-background: 220 45% 15%;
+    --sidebar-foreground: 40 25% 90%;
+    --sidebar-primary: 38 70% 55%;
+    --sidebar-primary-foreground: 220 45% 10%;
+    --sidebar-accent: 220 40% 22%;
+    --sidebar-accent-foreground: 40 25% 95%;
+    --sidebar-border: 220 35% 25%;
+    --sidebar-ring: 38 70% 55%;
+
+    /* Custom tokens */
+    --gold: 38 70% 45%;
+    --gold-light: 38 65% 55%;
+    --gold-dark: 38 75% 35%;
+    --navy: 220 45% 20%;
+    --navy-light: 220 40% 30%;
+    --navy-dark: 220 50% 12%;
+    --cream: 40 30% 96%;
+    --cream-dark: 40 25% 90%;
+
+    /* Status colors */
+    --success: 142 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 90% 50%;
+    --warning-foreground: 220 30% 15%;
+    --info: 200 70% 45%;
+    --info-foreground: 0 0% 100%;
+
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(38 70% 50%), hsl(38 65% 40%));
+    --gradient-navy: linear-gradient(135deg, hsl(220 45% 25%), hsl(220 50% 15%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 45% 15%) 0%, hsl(220 40% 25%) 50%, hsl(38 70% 45%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(220 30% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(220 30% 15% / 0.08), 0 2px 4px -2px hsl(220 30% 15% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(220 30% 15% / 0.08), 0 4px 6px -4px hsl(220 30% 15% / 0.05);
+    --shadow-gold: 0 4px 14px -2px hsl(38 70% 45% / 0.25);
+  }
+
+  .dark {
+    --background: 220 45% 8%;
+    --foreground: 40 25% 95%;
+
+    --card: 220 40% 12%;
+    --card-foreground: 40 25% 95%;
+
+    --popover: 220 40% 12%;
+    --popover-foreground: 40 25% 95%;
+
+    --primary: 38 70% 55%;
+    --primary-foreground: 220 45% 10%;
+
+    --secondary: 220 35% 18%;
+    --secondary-foreground: 40 25% 90%;
+
+    --muted: 220 30% 20%;
+    --muted-foreground: 40 15% 60%;
+
+    --accent: 38 65% 50%;
+    --accent-foreground: 220 45% 10%;
+
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 30% 22%;
+    --input: 220 30% 22%;
+    --ring: 38 70% 55%;
+
+    --sidebar-background: 220 50% 6%;
+    --sidebar-foreground: 40 25% 90%;
+    --sidebar-primary: 38 70% 55%;
+    --sidebar-primary-foreground: 220 45% 10%;
+    --sidebar-accent: 220 40% 15%;
+    --sidebar-accent-foreground: 40 25% 95%;
+    --sidebar-border: 220 35% 18%;
+    --sidebar-ring: 38 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .font-sans {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(38 70% 50%), hsl(38 65% 40%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-gold {
+    background: linear-gradient(135deg, hsl(38 70% 50%), hsl(38 65% 40%));
+  }
+
+  .bg-gradient-navy {
+    background: linear-gradient(135deg, hsl(220 45% 25%), hsl(220 50% 15%));
+  }
+
+  .shadow-gold {
+    box-shadow: 0 4px 14px -2px hsl(38 70% 45% / 0.25);
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
