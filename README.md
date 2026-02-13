@@ -79,7 +79,7 @@ Create `.env` file in **each** portal folder (`hotel-admin/`, `hotel-staff/`, `h
 
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGc...your-key-here
+VITE_SUPABASE_ANON_KEY=Your-key-here
 ```
 
 ### 3. Install & Run

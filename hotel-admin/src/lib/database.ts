@@ -10,6 +10,7 @@ import type {
   Payment,
   DashboardStats,
   Profile,
+  AccountProfile,
   UserRole,
 } from '@/types/hotel';
 
@@ -298,6 +299,92 @@ export const reservationService = {
     return this.getById(resId);
   },
 
+  async update(
+    id: number,
+    reservation: {
+      guest_id?: number;
+      check_in_date?: string;
+      check_out_date?: string;
+      total_guests?: number;
+    },
+    roomNumbers?: string[],
+    staffIds?: number[]
+  ): Promise<Reservation> {
+    // Update reservation basic info
+    const { error: resError } = await supabase
+      .from('reservations')
+      .update(reservation)
+      .eq('reservation_id', id);
+    if (resError) throw resError;
+
+    // Update room assignments if provided
+    if (roomNumbers !== undefined) {
+      // Get old rooms and free them
+      const { data: oldRooms } = await supabase
+        .from('reservation_room')
+        .select('room_number')
+        .eq('reservation_id', id);
+      
+      if (oldRooms) {
+        for (const r of oldRooms) {
+          await supabase
+            .from('rooms')
+            .update({ status: 'Available' })
+            .eq('room_number', r.room_number);
+        }
+      }
+
+      // Delete old room assignments
+      await supabase
+        .from('reservation_room')
+        .delete()
+        .eq('reservation_id', id);
+
+      // Insert new room assignments
+      if (roomNumbers.length > 0) {
+        const roomInserts = roomNumbers.map((rn) => ({
+          reservation_id: id,
+          room_number: rn,
+        }));
+        const { error: roomError } = await supabase
+          .from('reservation_room')
+          .insert(roomInserts);
+        if (roomError) throw roomError;
+
+        // Update new room status to Reserved
+        for (const rn of roomNumbers) {
+          await supabase
+            .from('rooms')
+            .update({ status: 'Reserved' })
+            .eq('room_number', rn);
+        }
+      }
+    }
+
+    // Update staff assignments if provided
+    if (staffIds !== undefined) {
+      // Delete old staff assignments
+      await supabase
+        .from('reservation_staff')
+        .delete()
+        .eq('reservation_id', id);
+
+      // Insert new staff assignments
+      if (staffIds.length > 0) {
+        const staffInserts = staffIds.map((sid) => ({
+          reservation_id: id,
+          staff_id: sid,
+        }));
+        const { error: staffError } = await supabase
+          .from('reservation_staff')
+          .insert(staffInserts);
+        if (staffError) throw staffError;
+      }
+    }
+
+    return this.getById(id);
+  },
+
   async updateStatus(id: number, status: string): Promise<void> {
     const updates: any = { status };
 
@@ -561,43 +648,218 @@ export const queryDemos = {
 // PROFILES (User Accounts)
 // =====================
 export const profileService = {
-  async getAll(): Promise<Profile[]> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data as Profile[];
+  async getAll(): Promise<AccountProfile[]> {
+    // Fetch from all three user tables and combine
+    const [adminsRes, frontDeskRes, guestsRes] = await Promise.all([
+      supabase.from('admins').select('*').order('created_at', { ascending: false }),
+      supabase.from('front_desk').select('*').order('created_at', { ascending: false }),
+      supabase.from('guests').select('*').order('created_at', { ascending: false }),
+    ]);
+
+    if (adminsRes.error) throw adminsRes.error;
+    if (frontDeskRes.error) throw frontDeskRes.error;
+    if (guestsRes.error) throw guestsRes.error;
+
+    // Transform to unified Profile format
+    const profiles: AccountProfile[] = [
+      ...(adminsRes.data || []).map(admin => ({
+        id: `admin_${admin.admin_id}`,
+        full_name: `${admin.first_name} ${admin.last_name}`,
+        email: admin.email,
+        role: 'admin' as UserRole,
+        created_at: admin.created_at,
+        contact_number: admin.contact_number,
+        username: admin.username,
+      })),
+      ...(frontDeskRes.data || []).map(staff => ({
+        id: `staff_${staff.front_desk_id}`,
+        full_name: `${staff.first_name} ${staff.last_name}`,
+        email: staff.email,
+        role: 'staff' as UserRole,
+        created_at: staff.created_at,
+        contact_number: staff.contact_number,
+        username: staff.username,
+      })),
+      ...(guestsRes.data || []).map(guest => ({
+        id: `user_${guest.guest_id}`,
+        full_name: `${guest.first_name} ${guest.last_name}`,
+        email: guest.email,
+        role: 'user' as UserRole,
+        created_at: guest.created_at,
+        contact_number: guest.contact_number,
+        username: guest.username,
+      })),
+    ];
+
+    return profiles;
   },
 
-  async getById(id: string): Promise<Profile> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .single();
-    if (error) throw error;
-    return data as Profile;
+  async getById(id: string): Promise<AccountProfile> {
+    const [type, idStr] = id.split('_');
+    const numId = parseInt(idStr);
+
+    if (type === 'admin') {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('admin_id', numId)
+        .single();
+      if (error) throw error;
+      return {
+        id: `admin_${data.admin_id}`,
+        full_name: `${data.first_name} ${data.last_name}`,
+        email: data.email,
+        role: 'admin' as UserRole,
+        created_at: data.created_at,
+        contact_number: data.contact_number,
+        username: data.username,
+      };
+    } else if (type === 'staff') {
+      const { data, error } = await supabase
+        .from('front_desk')
+        .select('*')
+        .eq('front_desk_id', numId)
+        .single();
+      if (error) throw error;
+      return {
+        id: `staff_${data.front_desk_id}`,
+        full_name: `${data.first_name} ${data.last_name}`,
+        email: data.email,
+        role: 'staff' as UserRole,
+        created_at: data.created_at,
+        contact_number: data.contact_number,
+        username: data.username,
+      };
+    } else {
+      const { data, error } = await supabase
+        .from('guests')
+        .select('*')
+        .eq('guest_id', numId)
+        .single();
+      if (error) throw error;
+      return {
+        id: `user_${data.guest_id}`,
+        full_name: `${data.first_name} ${data.last_name}`,
+        email: data.email,
+        role: 'user' as UserRole,
+        created_at: data.created_at,
+        contact_number: data.contact_number,
+        username: data.username,
+      };
+    }
   },
 
-  async updateRole(id: string, role: UserRole): Promise<Profile> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ role })
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Profile;
+  async updateRole(id: string, newRole: UserRole): Promise<AccountProfile> {
+    const [currentType, idStr] = id.split('_');
+    const numId = parseInt(idStr);
+
+    // Get current user data
+    let userData: any;
+    if (currentType === 'admin') {
+      const { data, error } = await supabase.from('admins').select('*').eq('admin_id', numId).single();
+      if (error) throw error;
+      userData = data;
+    } else if (currentType === 'staff') {
+      const { data, error } = await supabase.from('front_desk').select('*').eq('front_desk_id', numId).single();
+      if (error) throw error;
+      userData = data;
+    } else {
+      const { data, error } = await supabase.from('guests').select('*').eq('guest_id', numId).single();
+      if (error) throw error;
+      userData = data;
+    }
+
+    // If role hasn't changed, return current profile
+    const roleMap = { admin: 'admin', staff: 'staff', user: 'user' };
+    if (roleMap[currentType as keyof typeof roleMap] === newRole) {
+      return {
+        id,
+        full_name: `${userData.first_name} ${userData.last_name}`,
+        email: userData.email,
+        role: newRole,
+        created_at: userData.created_at,
+        contact_number: userData.contact_number,
+        username: userData.username,
+      };
+    }
+
+    // Delete from current table
+    if (currentType === 'admin') {
+      await supabase.from('admins').delete().eq('admin_id', numId);
+    } else if (currentType === 'staff') {
+      await supabase.from('front_desk').delete().eq('front_desk_id', numId);
+    } else {
+      await supabase.from('guests').delete().eq('guest_id', numId);
+    }
+
+    // Insert into new table
+    const baseData = {
+      username: userData.username,
+      password: userData.password,
+      email: userData.email,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      contact_number: userData.contact_number,
+    };
+
+    let newData: any;
+    if (newRole === 'admin') {
+      const { data, error } = await supabase.from('admins').insert(baseData).select().single();
+      if (error) throw error;
+      newData = data;
+      return {
+        id: `admin_${newData.admin_id}`,
+        full_name: `${newData.first_name} ${newData.last_name}`,
+        email: newData.email,
+        role: 'admin',
+        created_at: newData.created_at,
+        contact_number: newData.contact_number,
+        username: newData.username,
+      };
+    } else if (newRole === 'staff') {
+      const { data, error } = await supabase.from('front_desk').insert(baseData).select().single();
+      if (error) throw error;
+      newData = data;
+      return {
+        id: `staff_${newData.front_desk_id}`,
+        full_name: `${newData.first_name} ${newData.last_name}`,
+        email: newData.email,
+        role: 'staff',
+        created_at: newData.created_at,
+        contact_number: newData.contact_number,
+        username: newData.username,
+      };
+    } else {
+      const guestData = {
+        ...baseData,
+        street: userData.street || null,
+        city: userData.city || null,
+        state_province: userData.state_province || null,
+        zip_code: userData.zip_code || null,
+        country: userData.country || null,
+      };
+      const { data, error } = await supabase.from('guests').insert(guestData).select().single();
+      if (error) throw error;
+      newData = data;
+      return {
+        id: `user_${newData.guest_id}`,
+        full_name: `${newData.first_name} ${newData.last_name}`,
+        email: newData.email,
+        role: 'user',
+        created_at: newData.created_at,
+        contact_number: newData.contact_number,
+        username: newData.username,
+      };
+    }
   },
 
-  async search(query: string): Promise<Profile[]> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .ilike('full_name', `%${query}%`)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data as Profile[];
+  async search(query: string): Promise<AccountProfile[]> {
+    const allProfiles = await this.getAll();
+    const lowerQuery = query.toLowerCase();
+    return allProfiles.filter(profile =>
+      profile.full_name?.toLowerCase().includes(lowerQuery) ||
+      profile.email?.toLowerCase().includes(lowerQuery) ||
+      profile.username?.toLowerCase().includes(lowerQuery)
+    );
   },
 };

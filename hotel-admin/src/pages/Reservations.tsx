@@ -32,7 +32,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Eye, LogIn, LogOut, Loader2, X, Trash2 } from 'lucide-react';
+import { Plus, Search, Eye, LogIn, LogOut, Loader2, X, Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -52,6 +52,7 @@ export default function ReservationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,15 @@ export default function ReservationsPage() {
   const { isAdmin, isStaff: isStaffRole } = useAuth();
 
   const [formData, setFormData] = useState({
+    guest_id: '',
+    check_in_date: '',
+    check_out_date: '',
+    total_guests: 1,
+    room_numbers: [] as string[],
+    staff_ids: [] as number[],
+  });
+
+  const [editFormData, setEditFormData] = useState({
     guest_id: '',
     check_in_date: '',
     check_out_date: '',
@@ -151,6 +161,48 @@ export default function ReservationsPage() {
     }
   };
 
+  const handleEditClick = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setEditFormData({
+      guest_id: String(reservation.guest_id),
+      check_in_date: reservation.check_in_date,
+      check_out_date: reservation.check_out_date,
+      total_guests: reservation.total_guests,
+      room_numbers: reservation.rooms?.map((r) => r.room_number) || [],
+      staff_ids: reservation.staff?.map((s) => s.staff_id) || [],
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!selectedReservation || !editFormData.guest_id || !editFormData.check_in_date || !editFormData.check_out_date) {
+      toast({ title: 'Error', description: 'Guest, check-in and check-out dates are required', variant: 'destructive' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await reservationService.update(
+        selectedReservation.reservation_id,
+        {
+          guest_id: parseInt(editFormData.guest_id),
+          check_in_date: editFormData.check_in_date,
+          check_out_date: editFormData.check_out_date,
+          total_guests: editFormData.total_guests,
+        },
+        editFormData.room_numbers,
+        editFormData.staff_ids
+      );
+      toast({ title: 'Success', description: 'Reservation updated successfully' });
+      setIsEditDialogOpen(false);
+      loadData();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const toggleRoom = (roomNumber: string) => {
     setFormData(prev => ({
       ...prev,
@@ -160,8 +212,26 @@ export default function ReservationsPage() {
     }));
   };
 
+  const toggleEditRoom = (roomNumber: string) => {
+    setEditFormData(prev => ({
+      ...prev,
+      room_numbers: prev.room_numbers.includes(roomNumber)
+        ? prev.room_numbers.filter(r => r !== roomNumber)
+        : [...prev.room_numbers, roomNumber],
+    }));
+  };
+
   const toggleStaff = (staffId: number) => {
     setFormData(prev => ({
+      ...prev,
+      staff_ids: prev.staff_ids.includes(staffId)
+        ? prev.staff_ids.filter(s => s !== staffId)
+        : [...prev.staff_ids, staffId],
+    }));
+  };
+
+  const toggleEditStaff = (staffId: number) => {
+    setEditFormData(prev => ({
       ...prev,
       staff_ids: prev.staff_ids.includes(staffId)
         ? prev.staff_ids.filter(s => s !== staffId)
@@ -316,10 +386,24 @@ export default function ReservationsPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-sm">
-                  {format(new Date(reservation.check_in_date), 'MMM d, yyyy')}
+                  <div>
+                    {format(new Date(reservation.check_in_date), 'MMM d, yyyy')}
+                    {reservation.check_in_time && (
+                      <div className="text-xs text-muted-foreground">
+                        {format(new Date(reservation.check_in_time), 'h:mm a')}
+                      </div>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-sm">
-                  {format(new Date(reservation.check_out_date), 'MMM d, yyyy')}
+                  <div>
+                    {format(new Date(reservation.check_out_date), 'MMM d, yyyy')}
+                    {reservation.check_out_time && (
+                      <div className="text-xs text-muted-foreground">
+                        {format(new Date(reservation.check_out_time), 'h:mm a')}
+                      </div>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-center">{reservation.total_guests}</TableCell>
                 <TableCell>
@@ -332,6 +416,11 @@ export default function ReservationsPage() {
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setSelectedReservation(reservation); setIsViewDialogOpen(true); }}>
                       <Eye className="w-4 h-4" />
                     </Button>
+                    {(isAdmin || isStaffRole) && reservation.status === 'Reserved' && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600" onClick={() => handleEditClick(reservation)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
                     {(isAdmin || isStaffRole) && reservation.status === 'Reserved' && (
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-success hover:text-success" onClick={() => handleStatusChange(reservation.reservation_id, 'Checked-In')}>
                         <LogIn className="w-4 h-4" />
@@ -389,12 +478,20 @@ export default function ReservationsPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Check-in</p>
                   <p>{format(new Date(selectedReservation.check_in_date), 'MMM d, yyyy')}</p>
-                  {selectedReservation.check_in_time && <p className="text-xs text-muted-foreground">{selectedReservation.check_in_time}</p>}
+                  {selectedReservation.check_in_time && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {format(new Date(selectedReservation.check_in_time), 'h:mm a')}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Check-out</p>
                   <p>{format(new Date(selectedReservation.check_out_date), 'MMM d, yyyy')}</p>
-                  {selectedReservation.check_out_time && <p className="text-xs text-muted-foreground">{selectedReservation.check_out_time}</p>}
+                  {selectedReservation.check_out_time && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {format(new Date(selectedReservation.check_out_time), 'h:mm a')}
+                    </p>
+                  )}
                 </div>
               </div>
               <div>
@@ -425,6 +522,99 @@ export default function ReservationsPage() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Reservation Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Edit Reservation</DialogTitle>
+            <DialogDescription>Update reservation details</DialogDescription>
+          </DialogHeader>
+          {selectedReservation && (
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label>Guest</Label>
+                <Select value={editFormData.guest_id} onValueChange={(val) => setEditFormData({ ...editFormData, guest_id: val })}>
+                  <SelectTrigger><SelectValue placeholder="Select a guest" /></SelectTrigger>
+                  <SelectContent>
+                    {guests.map((guest) => (
+                      <SelectItem key={guest.guest_id} value={String(guest.guest_id)}>
+                        {guest.first_name} {guest.last_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Check-in Date</Label>
+                  <Input type="date" value={editFormData.check_in_date} onChange={(e) => setEditFormData({ ...editFormData, check_in_date: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Check-out Date</Label>
+                  <Input type="date" value={editFormData.check_out_date} onChange={(e) => setEditFormData({ ...editFormData, check_out_date: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Number of Guests</Label>
+                <Input type="number" min="1" value={editFormData.total_guests} onChange={(e) => setEditFormData({ ...editFormData, total_guests: parseInt(e.target.value) || 1 })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Rooms (click to select)</Label>
+                <div className="flex flex-wrap gap-2 p-3 border rounded-md max-h-32 overflow-y-auto">
+                  {availableRooms.map((room) => (
+                    <Badge
+                      key={room.room_number}
+                      variant={editFormData.room_numbers.includes(room.room_number) ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => toggleEditRoom(room.room_number)}
+                    >
+                      {room.room_number} - {room.room_type} (₱{room.daily_rate})
+                    </Badge>
+                  ))}
+                  {/* Show currently assigned rooms even if not available */}
+                  {selectedReservation.rooms?.map((rr) => {
+                    if (!availableRooms.some(r => r.room_number === rr.room_number)) {
+                      return (
+                        <Badge
+                          key={rr.room_number}
+                          variant={editFormData.room_numbers.includes(rr.room_number) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => toggleEditRoom(rr.room_number)}
+                        >
+                          {rr.room_number} - {rr.room?.room_type}
+                        </Badge>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Assign Staff (optional)</Label>
+                <div className="flex flex-wrap gap-2 p-3 border rounded-md max-h-32 overflow-y-auto">
+                  {staffList.map((s) => (
+                    <Badge
+                      key={s.staff_id}
+                      variant={editFormData.staff_ids.includes(s.staff_id) ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => toggleEditStaff(s.staff_id)}
+                    >
+                      {s.first_name} {s.last_name} ({s.role})
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground" onClick={handleEditSave} disabled={saving}>
+              {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save Changes'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

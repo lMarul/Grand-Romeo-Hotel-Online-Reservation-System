@@ -39,7 +39,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { profileService } from '@/lib/database';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Profile, UserRole } from '@/types/hotel';
+import type { AccountProfile, UserRole } from '@/types/hotel';
 
 const roleConfig: Record<UserRole, { label: string; icon: typeof Shield; color: string }> = {
   admin: { label: 'Administrator', icon: Shield, color: 'bg-red-500/10 text-red-500 border-red-500/20' },
@@ -48,11 +48,11 @@ const roleConfig: Record<UserRole, { label: string; icon: typeof Shield; color: 
 };
 
 export default function Accounts() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<AccountProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [editDialog, setEditDialog] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<AccountProfile | null>(null);
   const [newRole, setNewRole] = useState<UserRole>('user');
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -79,7 +79,7 @@ export default function Accounts() {
     fetchProfiles();
   }, []);
 
-  const handleEditRole = (profile: Profile) => {
+  const handleEditRole = (profile: AccountProfile) => {
     setSelectedProfile(profile);
     setNewRole(profile.role);
     setEditDialog(true);
@@ -89,7 +89,7 @@ export default function Accounts() {
     if (!selectedProfile) return;
     
     // Prevent admin from demoting themselves
-    if (selectedProfile.id === user?.id && newRole !== 'admin') {
+    if (selectedProfile.username === user?.username && newRole !== 'admin') {
       toast({
         title: 'Cannot demote yourself',
         description: 'You cannot change your own admin role',
@@ -136,7 +136,7 @@ export default function Accounts() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout title="User Accounts" subtitle="Manage system access and roles">
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -216,7 +216,7 @@ export default function Accounts() {
               ) : (
                 filteredProfiles.map((profile) => {
                   const config = roleConfig[profile.role];
-                  const isCurrentUser = profile.id === user?.id;
+                  const isCurrentUser = profile.username === user?.username;
                   return (
                     <TableRow key={profile.id}>
                       <TableCell>

@@ -298,6 +298,92 @@ export const reservationService = {
     return this.getById(resId);
   },
 
+  async update(
+    id: number,
+    reservation: {
+      guest_id?: number;
+      check_in_date?: string;
+      check_out_date?: string;
+      total_guests?: number;
+    },
+    roomNumbers?: string[],
+    staffIds?: number[]
+  ): Promise<Reservation> {
+    // Update reservation basic info
+    const { error: resError } = await supabase
+      .from('reservations')
+      .update(reservation)
+      .eq('reservation_id', id);
+    if (resError) throw resError;
+
+    // Update room assignments if provided
+    if (roomNumbers !== undefined) {
+      // Get old rooms and free them
+      const { data: oldRooms } = await supabase
+        .from('reservation_room')
+        .select('room_number')
+        .eq('reservation_id', id);
+      
+      if (oldRooms) {
+        for (const r of oldRooms) {
+          await supabase
+            .from('rooms')
+            .update({ status: 'Available' })
+            .eq('room_number', r.room_number);
+        }
+      }
+
+      // Delete old room assignments
+      await supabase
+        .from('reservation_room')
+        .delete()
+        .eq('reservation_id', id);
+
+      // Insert new room assignments
+      if (roomNumbers.length > 0) {
+        const roomInserts = roomNumbers.map((rn) => ({
+          reservation_id: id,
+          room_number: rn,
+        }));
+        const { error: roomError } = await supabase
+          .from('reservation_room')
+          .insert(roomInserts);
+        if (roomError) throw roomError;
+
+        // Update new room status to Reserved
+        for (const rn of roomNumbers) {
+          await supabase
+            .from('rooms')
+            .update({ status: 'Reserved' })
+            .eq('room_number', rn);
+        }
+      }
+    }
+
+    // Update staff assignments if provided
+    if (staffIds !== undefined) {
+      // Delete old staff assignments
+      await supabase
+        .from('reservation_staff')
+        .delete()
+        .eq('reservation_id', id);
+
+      // Insert new staff assignments
+      if (staffIds.length > 0) {
+        const staffInserts = staffIds.map((sid) => ({
+          reservation_id: id,
+          staff_id: sid,
+        }));
+        const { error: staffError } = await supabase
+          .from('reservation_staff')
+          .insert(staffInserts);
+        if (staffError) throw staffError;
+      }
+    }
+
+    return this.getById(id);
+  },
+
   async updateStatus(id: number, status: string): Promise<void> {
     const updates: any = { status };
 

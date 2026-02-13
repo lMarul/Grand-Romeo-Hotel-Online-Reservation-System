@@ -5,7 +5,7 @@
 // PORTAL USER TYPES (Authentication Tables)
 // =====================
 
-export type UserRole = 'admin' | 'front_desk' | 'guest';
+export type UserRole = 'admin' | 'staff' | 'user';
 
 // Admin Portal Users
 export interface Admin {
@@ -50,6 +50,17 @@ export interface Guest {
 
 // Generic Profile type (used in AuthContext)
 export type Profile = Admin | FrontDesk | Guest;
+
+// Unified Account Profile for Account Management
+export interface AccountProfile {
+  id: string;
+  username: string;
+  full_name: string;
+  email: string;
+  role: UserRole;
+  contact_number: string | null;
+  created_at: string;
+}
 
 // =====================
 // ROOMS TABLE

@@ -32,7 +32,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, CreditCard, Banknote, Building, Wallet, Loader2, Trash2 } from 'lucide-react';
+import { Plus, Search, CreditCard, Banknote, Building, Wallet, Loader2, Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -58,6 +58,8 @@ export default function PaymentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMethod, setFilterMethod] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -67,6 +69,13 @@ export default function PaymentsPage() {
     reservation_id: '',
     amount_paid: 0,
     payment_method: 'Cash' as PaymentMethod,
+    transaction_id: '',
+  });
+
+  const [editFormData, setEditFormData] = useState({
+    amount_paid: 0,
+    payment_method: 'Cash' as PaymentMethod,
+    payment_date: '',
     transaction_id: '',
   });
 
@@ -129,6 +138,41 @@ export default function PaymentsPage() {
       loadData();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const handleEditClick = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setEditFormData({
+      amount_paid: payment.amount_paid,
+      payment_method: payment.payment_method,
+      payment_date: payment.payment_date,
+      transaction_id: payment.transaction_id || '',
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!selectedPayment || !editFormData.amount_paid) {
+      toast({ title: 'Error', description: 'Amount is required', variant: 'destructive' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await paymentService.update(selectedPayment.payment_id, {
+        amount_paid: editFormData.amount_paid,
+        payment_method: editFormData.payment_method,
+        payment_date: editFormData.payment_date,
+        transaction_id: editFormData.transaction_id || null,
+      });
+      toast({ title: 'Success', description: 'Payment updated successfully' });
+      setIsEditDialogOpen(false);
+      loadData();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -294,9 +338,14 @@ export default function PaymentsPage() {
                   </TableCell>
                   {isAdmin && (
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(payment.payment_id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600" onClick={() => handleEditClick(payment)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(payment.payment_id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                   )}
                 </TableRow>
@@ -306,6 +355,59 @@ export default function PaymentsPage() {
         </Table>
       </div>
       )}
+
+      {/* Edit Payment Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Edit Payment</DialogTitle>
+            <DialogDescription>Update payment details</DialogDescription>
+          </DialogHeader>
+          {selectedPayment && (
+            <div className="grid gap-4 py-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Reservation</p>
+                <p className="font-semibold">
+                  #{selectedPayment.reservation_id} - {selectedPayment.reservation?.guest?.first_name} {selectedPayment.reservation?.guest?.last_name}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Amount (₱)</Label>
+                  <Input type="number" min="0" value={editFormData.amount_paid || ''} onChange={(e) => setEditFormData({ ...editFormData, amount_paid: parseFloat(e.target.value) || 0 })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Payment Method</Label>
+                  <Select value={editFormData.payment_method} onValueChange={(val) => setEditFormData({ ...editFormData, payment_method: val as PaymentMethod })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Credit Card">Credit Card</SelectItem>
+                      <SelectItem value="Debit Card">Debit Card</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="E-Wallet">E-Wallet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Payment Date</Label>
+                <Input type="date" value={editFormData.payment_date} onChange={(e) => setEditFormData({ ...editFormData, payment_date: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Transaction ID (optional)</Label>
+                <Input placeholder="TXN123456" value={editFormData.transaction_id} onChange={(e) => setEditFormData({ ...editFormData, transaction_id: e.target.value })} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground" onClick={handleEditSave} disabled={saving}>
+              {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

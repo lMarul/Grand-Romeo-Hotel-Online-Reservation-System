@@ -7,10 +7,10 @@ interface RoomStatusGridProps {
 }
 
 const statusColors: Record<string, string> = {
-  'Available': 'bg-success/10 border-success/30 text-success',
-  'Occupied': 'bg-info/10 border-info/30 text-info',
-  'Reserved': 'bg-warning/10 border-warning/30 text-warning',
-  'Maintenance': 'bg-muted border-border text-muted-foreground',
+  'Available': 'bg-emerald-100 border-emerald-400 text-emerald-700',
+  'Occupied': 'bg-orange-100 border-orange-400 text-orange-700',
+  'Reserved': 'bg-blue-100 border-blue-400 text-blue-700',
+  'Maintenance': 'bg-slate-200 border-slate-400 text-slate-700',
 };
 
 const statusIcons: Record<string, typeof BedDouble> = {
