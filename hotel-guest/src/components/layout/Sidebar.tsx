@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarDays,
+  UserCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -21,6 +22,7 @@ const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: CalendarDays, label: 'My Reservations', path: '/my-reservations' },
   { icon: BedDouble, label: 'Browse Rooms', path: '/rooms' },
+  { icon: UserCircle, label: 'My Profile', path: '/profile' },
 ];
 
 export function Sidebar() {

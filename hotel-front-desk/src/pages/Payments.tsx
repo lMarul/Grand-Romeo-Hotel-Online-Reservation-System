@@ -40,7 +40,7 @@ const paymentMethodIcons: Record<PaymentMethod, typeof CreditCard> = {
   'Credit Card': CreditCard,
   'Debit Card': CreditCard,
   'Bank Transfer': Building,
-  'Digital Wallet': Wallet,
+  'E-Wallet': Wallet,
 };
 
 const paymentMethodStyles: Record<PaymentMethod, string> = {
@@ -48,7 +48,7 @@ const paymentMethodStyles: Record<PaymentMethod, string> = {
   'Credit Card': 'bg-info/10 text-info border-info/30',
   'Debit Card': 'bg-info/10 text-info border-info/30',
   'Bank Transfer': 'bg-primary/10 text-primary border-primary/30',
-  'Digital Wallet': 'bg-warning/10 text-warning border-warning/30',
+  'E-Wallet': 'bg-warning/10 text-warning border-warning/30',
 };
 
 export default function PaymentsPage() {
@@ -169,7 +169,7 @@ export default function PaymentsPage() {
               <SelectItem value="Credit Card">Credit Card</SelectItem>
               <SelectItem value="Debit Card">Debit Card</SelectItem>
               <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-              <SelectItem value="Digital Wallet">Digital Wallet</SelectItem>
+              <SelectItem value="E-Wallet">E-Wallet</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -213,7 +213,7 @@ export default function PaymentsPage() {
                       <SelectItem value="Credit Card">Credit Card</SelectItem>
                       <SelectItem value="Debit Card">Debit Card</SelectItem>
                       <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                      <SelectItem value="Digital Wallet">Digital Wallet</SelectItem>
+                      <SelectItem value="E-Wallet">E-Wallet</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

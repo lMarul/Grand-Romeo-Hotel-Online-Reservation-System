@@ -41,7 +41,11 @@ export default function GuestsPage() {
     first_name: '',
     last_name: '',
     contact_number: '',
-    address: '',
+    street: '',
+    city: '',
+    state_province: '',
+    zip_code: '',
+    country: '',
   });
 
   const loadGuests = async () => {
@@ -65,7 +69,7 @@ export default function GuestsPage() {
   );
 
   const resetForm = () => {
-    setFormData({ first_name: '', last_name: '', contact_number: '', address: '' });
+    setFormData({ first_name: '', last_name: '', contact_number: '', street: '', city: '', state_province: '', zip_code: '', country: '' });
   };
 
   const handleAddGuest = async () => {
@@ -79,8 +83,12 @@ export default function GuestsPage() {
         first_name: formData.first_name,
         last_name: formData.last_name,
         contact_number: formData.contact_number || null,
-        address: formData.address || null,
-      });
+        street: formData.street || null,
+        city: formData.city || null,
+        state_province: formData.state_province || null,
+        zip_code: formData.zip_code || null,
+        country: formData.country || null,
+      } as any);
       toast({ title: 'Success', description: 'Guest added successfully' });
       setIsAddDialogOpen(false);
       resetForm();
@@ -100,7 +108,11 @@ export default function GuestsPage() {
         first_name: formData.first_name,
         last_name: formData.last_name,
         contact_number: formData.contact_number || null,
-        address: formData.address || null,
+        street: formData.street || null,
+        city: formData.city || null,
+        state_province: formData.state_province || null,
+        zip_code: formData.zip_code || null,
+        country: formData.country || null,
       });
       toast({ title: 'Success', description: 'Guest updated successfully' });
       setIsEditDialogOpen(false);
@@ -128,7 +140,11 @@ export default function GuestsPage() {
       first_name: guest.first_name,
       last_name: guest.last_name,
       contact_number: guest.contact_number || '',
-      address: guest.address || '',
+      street: guest.street || '',
+      city: guest.city || '',
+      state_province: guest.state_province || '',
+      zip_code: guest.zip_code || '',
+      country: guest.country || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -169,8 +185,28 @@ export default function GuestsPage() {
                 <Input id="phone" placeholder="09123456789" value={formData.contact_number} onChange={(e) => setFormData({ ...formData, contact_number: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" placeholder="Manila" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+                <Label htmlFor="street">Street</Label>
+                <Input id="street" placeholder="123 Main St." value={formData.street} onChange={(e) => setFormData({ ...formData, street: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input id="city" placeholder="Manila" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="state">Province/State</Label>
+                  <Input id="state" placeholder="Metro Manila" value={formData.state_province} onChange={(e) => setFormData({ ...formData, state_province: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="zip">Zip Code</Label>
+                  <Input id="zip" placeholder="1000" value={formData.zip_code} onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input id="country" placeholder="Philippines" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -219,7 +255,7 @@ export default function GuestsPage() {
                 <TableCell>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="w-3 h-3" />
-                    {guest.address || '-'}
+                    {[guest.city, guest.country].filter(Boolean).join(', ') || '-'}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
@@ -266,7 +302,13 @@ export default function GuestsPage() {
                 </div>
                 <div className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <span>{selectedGuest.address || 'No address'}</span>
+                  <div>
+                    {selectedGuest.street && <p>{selectedGuest.street}</p>}
+                    <p>{[selectedGuest.city, selectedGuest.state_province].filter(Boolean).join(', ') || 'No address'}</p>
+                    {(selectedGuest.zip_code || selectedGuest.country) && (
+                      <p className="text-muted-foreground text-sm">{[selectedGuest.zip_code, selectedGuest.country].filter(Boolean).join(', ')}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -297,8 +339,28 @@ export default function GuestsPage() {
               <Input value={formData.contact_number} onChange={(e) => setFormData({ ...formData, contact_number: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Address</Label>
-              <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+              <Label>Street</Label>
+              <Input value={formData.street} onChange={(e) => setFormData({ ...formData, street: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Input value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Province/State</Label>
+                <Input value={formData.state_province} onChange={(e) => setFormData({ ...formData, state_province: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Zip Code</Label>
+                <Input value={formData.zip_code} onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Country</Label>
+                <Input value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+              </div>
             </div>
           </div>
           <DialogFooter>

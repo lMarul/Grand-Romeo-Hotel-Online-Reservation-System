@@ -65,6 +65,14 @@ export const guestService = {
     if (error) throw error;
     return data as Guest[];
   },
+
+  async delete(id: number): Promise<void> {
+    const { error } = await supabase
+      .from('guests')
+      .delete()
+      .eq('guest_id', id);
+    if (error) throw error;
+  },
 };
 
 // =====================
@@ -477,6 +485,7 @@ export const paymentService = {
 export const dashboardService = {
   async getStats(): Promise<DashboardStats> {
     const today = new Date().toISOString().split('T')[0];
+    const monthStart = today.slice(0, 8) + '01';
 
     const [
       { count: totalGuests },
@@ -484,17 +493,20 @@ export const dashboardService = {
       { data: activeRes },
       { data: todayCheckInsData },
       { data: todayCheckOutsData },
+      { data: monthlyPayments },
     ] = await Promise.all([
       supabase.from('guests').select('*', { count: 'exact', head: true }),
       supabase.from('rooms').select('*'),
       supabase.from('reservations').select('*').in('status', ['Reserved', 'Checked-In']),
       supabase.from('reservations').select('*').eq('check_in_date', today),
       supabase.from('reservations').select('*').eq('check_out_date', today),
+      supabase.from('payments').select('amount_paid, payment_date').gte('payment_date', monthStart).lte('payment_date', today),
     ]);
 
     const allRooms = rooms || [];
     const availableRooms = allRooms.filter((r: any) => r.status === 'Available').length;
     const occupiedRooms = allRooms.filter((r: any) => r.status === 'Occupied').length;
+    const monthlyRevenue = (monthlyPayments || []).reduce((sum: number, p: any) => sum + Number(p.amount_paid), 0);
 
     return {
       totalGuests: totalGuests || 0,
@@ -504,7 +516,7 @@ export const dashboardService = {
       activeReservations: (activeRes || []).length,
       todayCheckIns: (todayCheckInsData || []).length,
       todayCheckOuts: (todayCheckOutsData || []).length,
-      monthlyRevenue: 0, // Front desk does not access revenue data
+      monthlyRevenue,
     };
   },
 };

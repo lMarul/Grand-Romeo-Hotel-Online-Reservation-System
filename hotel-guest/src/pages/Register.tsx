@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Hotel, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Hotel, Loader2, Eye, EyeOff, Star, Gift, Sparkles, CreditCard } from 'lucide-react';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -46,7 +46,6 @@ export default function Register() {
       setError(error.message);
       setLoading(false);
     } else {
-      // Auto-login successful, redirect to dashboard
       navigate('/');
     }
   };
@@ -54,19 +53,41 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-sidebar items-center justify-center p-12">
-        <div className="text-center">
+      <div className="hidden lg:flex lg:w-1/2 bg-sidebar relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzMuMzEzIDAgNi0yLjY4NyA2LTZIMGY2IDAgNi0yLjY4NyA2LTZzLTIuNjg3LTYtNi02LTYgMi42ODctNiA2IDIuNjg3IDYgNiA2eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+        <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
           <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-gold shadow-gold mx-auto mb-8">
             <Hotel className="w-10 h-10 text-sidebar-primary-foreground" />
           </div>
-          <h1 className="font-display text-4xl font-bold text-sidebar-foreground mb-4">
+          <h1 className="font-display text-4xl font-bold text-sidebar-foreground mb-2">
             Grand Romeo Hotel
           </h1>
-          <p className="text-sidebar-foreground/70 text-lg max-w-md">
-            Guest Portal - Create Your Account
+          <p className="text-sidebar-foreground/60 text-lg mb-1 italic">
+            Begin Your Luxury Experience
           </p>
-          <p className="text-sidebar-foreground/40 text-sm mt-4">
-            DATAMA2 - Database Management 2
+          <div className="flex items-center gap-1 text-amber-400 mb-10">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-4 h-4 fill-amber-400" />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 w-full max-w-xs">
+            {[
+              { icon: CreditCard, text: 'Best Rate Guarantee for Members' },
+              { icon: Gift, text: 'Welcome Amenities on First Stay' },
+              { icon: Sparkles, text: 'Exclusive Member-Only Offers' },
+            ].map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-3 text-sidebar-foreground/70">
+                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-amber-400" />
+                </div>
+                <span className="text-sm">{text}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-sidebar-foreground/30 text-xs mt-12">
+            DATAMA2 — Database Management 2
           </p>
         </div>
       </div>

@@ -4,14 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -28,27 +20,60 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  CalendarCheck, 
-  Plus, 
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  CalendarCheck,
+  Plus,
   BedDouble,
   Loader2,
   Clock,
   CheckCircle2,
   XCircle,
   LogIn,
+  ArrowRight,
+  Maximize,
+  Users,
+  Star,
+  Ban,
+  Eye,
+  Sparkles,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { roomService, reservationService } from '@/lib/database';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Room, Reservation } from '@/types/hotel';
+import { ROOM_TYPE_DATA, ROOM_TYPES_ORDER, getRoomTypeInfo } from '@/data/roomTypes';
+import { cn } from '@/lib/utils';
+import { format, differenceInDays } from 'date-fns';
 
-const statusConfig: Record<string, { label: string; icon: typeof Clock; color: string }> = {
-  'Reserved': { label: 'Reserved', icon: Clock, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  'Checked-In': { label: 'Checked In', icon: LogIn, color: 'bg-green-500/10 text-green-500 border-green-500/20' },
-  'Checked-Out': { label: 'Checked Out', icon: CheckCircle2, color: 'bg-gray-500/10 text-gray-500 border-gray-500/20' },
-  'Cancelled': { label: 'Cancelled', icon: XCircle, color: 'bg-red-500/10 text-red-500 border-red-500/20' },
+const statusConfig: Record<
+  string,
+  { label: string; icon: typeof Clock; color: string; bgColor: string }
+> = {
+  Reserved: {
+    label: 'Reserved',
+    icon: Clock,
+    color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    bgColor: 'from-blue-500/5 to-blue-600/5 border-blue-500/20',
+  },
+  'Checked-In': {
+    label: 'Checked In',
+    icon: LogIn,
+    color: 'bg-green-500/10 text-green-600 border-green-500/20',
+    bgColor: 'from-green-500/5 to-green-600/5 border-green-500/20',
+  },
+  'Checked-Out': {
+    label: 'Checked Out',
+    icon: CheckCircle2,
+    color: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+    bgColor: 'from-gray-500/5 to-gray-600/5 border-gray-500/20',
+  },
+  Cancelled: {
+    label: 'Cancelled',
+    icon: XCircle,
+    color: 'bg-red-500/10 text-red-600 border-red-500/20',
+    bgColor: 'from-red-500/5 to-red-600/5 border-red-500/20',
+  },
 };
 
 export default function MyReservations() {
@@ -56,19 +81,22 @@ export default function MyReservations() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] =
+    useState<Reservation | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Form state for new reservation
+  // Form state
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    contactNumber: '',
     checkInDate: '',
     checkOutDate: '',
     totalGuests: 1,
     selectedRoom: '',
+    selectedRoomType: 'all',
   });
 
   useEffect(() => {
@@ -78,23 +106,12 @@ export default function MyReservations() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
-      // Fetch only available rooms (guests shouldn't see occupied/maintenance)
       const roomsData = await roomService.getAvailable();
       setRooms(roomsData);
-
-      // Use logged-in user's data directly - they are the guest
       if (user) {
-        // Pre-fill form with user data
-        setFormData(prev => ({
-          ...prev,
-          firstName: user.first_name,
-          lastName: user.last_name,
-          contactNumber: user.contact_number || '',
-        }));
-        
-        // Fetch only this guest's reservations (server-side filter)
-        const myReservations = await reservationService.getByGuestId(user.guest_id);
+        const myReservations = await reservationService.getByGuestId(
+          user.guest_id
+        );
         setReservations(myReservations);
       }
     } catch (error) {
@@ -109,14 +126,35 @@ export default function MyReservations() {
     }
   };
 
-  const availableRooms = rooms.filter(r => r.status === 'Available');
+  const availableRooms = rooms.filter((r) => r.status === 'Available');
+  const filteredAvailableRooms =
+    formData.selectedRoomType === 'all'
+      ? availableRooms
+      : availableRooms.filter((r) => r.room_type === formData.selectedRoomType);
+
+  const filteredReservations =
+    filterStatus === 'all'
+      ? reservations
+      : reservations.filter((r) => r.status === filterStatus);
 
   const handleCreateReservation = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.checkInDate || 
-        !formData.checkOutDate || !formData.selectedRoom) {
+    if (
+      !formData.checkInDate ||
+      !formData.checkOutDate ||
+      !formData.selectedRoom
+    ) {
       toast({
         title: 'Missing information',
-        description: 'Please fill in all required fields',
+        description: 'Please select dates and a room',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (new Date(formData.checkOutDate) <= new Date(formData.checkInDate)) {
+      toast({
+        title: 'Invalid dates',
+        description: 'Check-out date must be after check-in date',
         variant: 'destructive',
       });
       return;
@@ -124,7 +162,6 @@ export default function MyReservations() {
 
     setSaving(true);
     try {
-      // Use logged-in user's guest_id
       if (!user) {
         toast({
           title: 'Error',
@@ -135,7 +172,6 @@ export default function MyReservations() {
         return;
       }
 
-      // Create reservation with room assignment
       const newReservation = await reservationService.create(
         {
           guest_id: user.guest_id,
@@ -144,31 +180,29 @@ export default function MyReservations() {
           total_guests: formData.totalGuests,
           status: 'Reserved',
         },
-        [formData.selectedRoom], // Room numbers
-        [] // No staff assigned by guest
+        [formData.selectedRoom],
+        []
       );
 
-      // Refresh data
       await fetchData();
-      
       setDialogOpen(false);
-      setFormData(prev => ({
-        ...prev,
+      setFormData({
         checkInDate: '',
         checkOutDate: '',
         totalGuests: 1,
         selectedRoom: '',
-      }));
-      
+        selectedRoomType: 'all',
+      });
+
       toast({
-        title: 'Reservation created!',
-        description: `Your room has been reserved. Reservation #${newReservation.reservation_id}`,
+        title: 'Reservation Confirmed!',
+        description: `Booking #${newReservation.reservation_id} has been created successfully.`,
       });
     } catch (error) {
       console.error('Error creating reservation:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to create reservation. Please try again.',
+        title: 'Booking Failed',
+        description: 'Unable to complete your reservation. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -176,168 +210,338 @@ export default function MyReservations() {
     }
   };
 
-  const selectedRoomDetails = rooms.find(r => r.room_number === formData.selectedRoom);
-  
-  // Calculate total cost
+  const handleCancelReservation = async () => {
+    if (!selectedReservation) return;
+    setSaving(true);
+    try {
+      await reservationService.cancel(selectedReservation.reservation_id);
+      await fetchData();
+      setCancelDialogOpen(false);
+      setSelectedReservation(null);
+      toast({
+        title: 'Reservation Cancelled',
+        description: `Booking #${selectedReservation.reservation_id} has been cancelled.`,
+      });
+    } catch (error) {
+      console.error('Error cancelling reservation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to cancel reservation.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const selectedRoomDetails = rooms.find(
+    (r) => r.room_number === formData.selectedRoom
+  );
+  const calculateNights = () => {
+    if (!formData.checkInDate || !formData.checkOutDate) return 0;
+    return differenceInDays(
+      new Date(formData.checkOutDate),
+      new Date(formData.checkInDate)
+    );
+  };
   const calculateTotal = () => {
-    if (!selectedRoomDetails || !formData.checkInDate || !formData.checkOutDate) return 0;
-    const checkIn = new Date(formData.checkInDate);
-    const checkOut = new Date(formData.checkOutDate);
-    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    if (!selectedRoomDetails) return 0;
+    const nights = calculateNights();
     return nights > 0 ? nights * Number(selectedRoomDetails.daily_rate) : 0;
   };
 
+  const activeCount = reservations.filter(
+    (r) => r.status === 'Reserved' || r.status === 'Checked-In'
+  ).length;
+
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <DashboardLayout
+      title="My Reservations"
+      subtitle="Manage your bookings at Grand Romeo Hotel"
+    >
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-sidebar via-sidebar/95 to-sidebar/90 p-8 mb-8">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzMuMzEzIDAgNi0yLjY4NyA2LTZIMGY2IDAgNi0yLjY4NyA2LTZzLTIuNjg3LTYtNi02LTYgMi42ODctNiA2IDIuNjg3IDYgNiA2eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h1 className="font-display text-3xl font-bold">My Reservations</h1>
-            <p className="text-muted-foreground mt-1">
-              View and manage your bookings at Grand Romeo Hotel
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <span className="text-amber-400 text-sm font-medium uppercase tracking-wider">
+                Reservations
+              </span>
+            </div>
+            <h2 className="font-display text-2xl lg:text-3xl font-bold text-white mb-1">
+              Your Booking Overview
+            </h2>
+            <p className="text-white/60">
+              {reservations.length} total booking{reservations.length !== 1 ? 's' : ''} •{' '}
+              {activeCount} active
             </p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold">
+              <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold h-11 shrink-0">
                 <Plus className="w-4 h-4 mr-2" />
                 Book a Room
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-xl">
               <DialogHeader>
-                <DialogTitle>Book a Room</DialogTitle>
+                <DialogTitle className="font-display text-xl">
+                  Book Your Stay
+                </DialogTitle>
                 <DialogDescription>
-                  Reserve your stay at Grand Azure Hotel
+                  Reserve your room at Grand Romeo Hotel
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
-                {/* Guest Details - Pre-filled from logged-in user */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm text-muted-foreground">Guest Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name *</Label>
-                      <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        placeholder="Juan"
-                        disabled={!!user}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name *</Label>
-                      <Input
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        placeholder="Dela Cruz"
-                        disabled={!!user}
-                      />
-                    </div>
+              <div className="space-y-5 py-4 max-h-[60vh] overflow-y-auto">
+                {/* Guest Info (read-only) */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                  <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground text-sm font-semibold">
+                    {user?.first_name?.[0]}
+                    {user?.last_name?.[0]}
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">
+                      {user?.first_name} {user?.last_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="checkIn">Check-in Date *</Label>
+                    <Input
+                      id="checkIn"
+                      type="date"
+                      value={formData.checkInDate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          checkInDate: e.target.value,
+                          checkOutDate:
+                            formData.checkOutDate &&
+                            e.target.value >= formData.checkOutDate
+                              ? ''
+                              : formData.checkOutDate,
+                        })
+                      }
+                      min={new Date().toISOString().split('T')[0]}
+                      className="h-10"
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="contactNumber">Contact Number</Label>
+                    <Label htmlFor="checkOut">Check-out Date *</Label>
                     <Input
-                      id="contactNumber"
-                      value={formData.contactNumber}
-                      onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
-                      placeholder="09123456789"
-                      disabled={!!user}
+                      id="checkOut"
+                      type="date"
+                      value={formData.checkOutDate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          checkOutDate: e.target.value,
+                        })
+                      }
+                      min={
+                        formData.checkInDate ||
+                        new Date().toISOString().split('T')[0]
+                      }
+                      className="h-10"
                     />
                   </div>
                 </div>
 
-                {/* Booking Details */}
-                <div className="space-y-4 pt-4 border-t">
-                  <h4 className="font-medium text-sm text-muted-foreground">Booking Details</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="checkIn">Check-in Date *</Label>
-                      <Input
-                        id="checkIn"
-                        type="date"
-                        value={formData.checkInDate}
-                        onChange={(e) => setFormData({ ...formData, checkInDate: e.target.value })}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="checkOut">Check-out Date *</Label>
-                      <Input
-                        id="checkOut"
-                        type="date"
-                        value={formData.checkOutDate}
-                        onChange={(e) => setFormData({ ...formData, checkOutDate: e.target.value })}
-                        min={formData.checkInDate || new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="guests">Number of Guests</Label>
-                    <Input
-                      id="guests"
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={formData.totalGuests}
-                      onChange={(e) => setFormData({ ...formData, totalGuests: parseInt(e.target.value) || 1 })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="room">Select Room *</Label>
-                    <Select 
-                      value={formData.selectedRoom} 
-                      onValueChange={(val) => setFormData({ ...formData, selectedRoom: val })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose an available room" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableRooms.length === 0 ? (
-                          <SelectItem value="_none" disabled>No rooms available</SelectItem>
-                        ) : (
-                          availableRooms.map(room => (
-                            <SelectItem key={room.room_number} value={room.room_number}>
-                              Room {room.room_number} - {room.room_type} (₱{Number(room.daily_rate).toLocaleString()}/night, fits {room.capacity})
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="guests">Number of Guests</Label>
+                  <Input
+                    id="guests"
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={formData.totalGuests}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        totalGuests: parseInt(e.target.value) || 1,
+                      })
+                    }
+                    className="h-10"
+                  />
                 </div>
+
+                {/* Room Type Filter */}
+                <div className="space-y-2">
+                  <Label>Room Category</Label>
+                  <Select
+                    value={formData.selectedRoomType}
+                    onValueChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        selectedRoomType: val,
+                        selectedRoom: '',
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Filter by room type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Room Types</SelectItem>
+                      {ROOM_TYPES_ORDER.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}{' '}
+                          {type === 'Presidential' ? 'Suite' : 'Room'} —{' '}
+                          {ROOM_TYPE_DATA[type].priceRange}/night
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Room Selection */}
+                <div className="space-y-2">
+                  <Label htmlFor="room">Select Room *</Label>
+                  <Select
+                    value={formData.selectedRoom}
+                    onValueChange={(val) =>
+                      setFormData({ ...formData, selectedRoom: val })
+                    }
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Choose an available room" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredAvailableRooms.length === 0 ? (
+                        <SelectItem value="_none" disabled>
+                          No rooms available
+                        </SelectItem>
+                      ) : (
+                        filteredAvailableRooms.map((room) => {
+                          const info = getRoomTypeInfo(room.room_type);
+                          return (
+                            <SelectItem
+                              key={room.room_number}
+                              value={room.room_number}
+                            >
+                              Room {room.room_number} — {room.room_type} •{' '}
+                              {info.floorArea} • ₱
+                              {Number(room.daily_rate).toLocaleString()}/night
+                            </SelectItem>
+                          );
+                        })
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Room Preview */}
+                {selectedRoomDetails && (
+                  <div
+                    className={cn(
+                      'rounded-xl p-4 bg-gradient-to-r text-white',
+                      getRoomTypeInfo(selectedRoomDetails.room_type).gradient
+                    )}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-display text-lg font-bold">
+                          Room {selectedRoomDetails.room_number}
+                        </p>
+                        <p className="text-sm text-white/80">
+                          {selectedRoomDetails.room_type}{' '}
+                          {selectedRoomDetails.room_type === 'Presidential'
+                            ? 'Suite'
+                            : 'Room'}
+                        </p>
+                      </div>
+                      <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-white/70 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Maximize className="w-3 h-3" />{' '}
+                        {getRoomTypeInfo(selectedRoomDetails.room_type).floorArea}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" /> Max{' '}
+                        {selectedRoomDetails.capacity}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <BedDouble className="w-3 h-3" />{' '}
+                        {getRoomTypeInfo(selectedRoomDetails.room_type).bedType}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Cost Summary */}
-                {selectedRoomDetails && formData.checkInDate && formData.checkOutDate && (
-                  <Card className="bg-muted/50">
-                    <CardContent className="pt-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium">Room {selectedRoomDetails.room_number}</p>
-                          <p className="text-sm text-muted-foreground">{selectedRoomDetails.room_type}</p>
+                {selectedRoomDetails &&
+                  formData.checkInDate &&
+                  formData.checkOutDate &&
+                  calculateNights() > 0 && (
+                    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                      <h4 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                        Booking Summary
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Room Rate
+                          </span>
+                          <span>
+                            ₱
+                            {Number(
+                              selectedRoomDetails.daily_rate
+                            ).toLocaleString()}{' '}
+                            × {calculateNights()} night(s)
+                          </span>
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold">₱{calculateTotal().toLocaleString()}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {Math.ceil((new Date(formData.checkOutDate).getTime() - new Date(formData.checkInDate).getTime()) / (1000 * 60 * 60 * 24))} night(s)
-                          </p>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Check-in
+                          </span>
+                          <span>
+                            {format(
+                              new Date(formData.checkInDate),
+                              'MMM d, yyyy'
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Check-out
+                          </span>
+                          <span>
+                            {format(
+                              new Date(formData.checkOutDate),
+                              'MMM d, yyyy'
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-border font-semibold text-lg">
+                          <span>Total</span>
+                          <span className="font-display text-primary">
+                            ₱{calculateTotal().toLocaleString()}
+                          </span>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    </div>
+                  )}
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleCreateReservation} 
-                  disabled={saving || availableRooms.length === 0}
-                  className="bg-gradient-gold hover:opacity-90"
+                <Button
+                  onClick={handleCreateReservation}
+                  disabled={saving || filteredAvailableRooms.length === 0}
+                  className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold"
                 >
                   {saving ? (
                     <>
@@ -345,115 +549,474 @@ export default function MyReservations() {
                       Booking...
                     </>
                   ) : (
-                    'Confirm Booking'
+                    <>
+                      Confirm Booking
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
                   )}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Reservations</CardTitle>
-              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{reservations.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Bookings</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {reservations.filter(r => r.status === 'Reserved' || r.status === 'Checked-In').length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Available Rooms</CardTitle>
-              <BedDouble className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{availableRooms.length}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Reservations Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Bookings</CardTitle>
-            <CardDescription>
-              {user 
-                ? `Showing reservations for ${user.first_name} ${user.last_name}`
-                : 'Please log in to view your reservations'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Reservation #</TableHead>
-                  <TableHead>Check-in</TableHead>
-                  <TableHead>Check-out</TableHead>
-                  <TableHead>Guests</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-                      <p className="text-muted-foreground">Loading your reservations...</p>
-                    </TableCell>
-                  </TableRow>
-                ) : reservations.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      <CalendarCheck className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-muted-foreground">No reservations yet</p>
-                      <p className="text-sm text-muted-foreground">Book your first room to get started!</p>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  reservations.map((reservation) => {
-                    const config = statusConfig[reservation.status] || statusConfig['Reserved'];
-                    return (
-                      <TableRow key={reservation.reservation_id}>
-                        <TableCell className="font-medium">
-                          #{reservation.reservation_id}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(reservation.check_in_date).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(reservation.check_out_date).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>{reservation.total_guests}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={config.color}>
-                            <config.icon className="w-3 h-3 mr-1" />
-                            {config.label}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <CalendarCheck className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold">
+                {reservations.length}
+              </p>
+              <p className="text-xs text-muted-foreground">Total Bookings</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-500/10">
+              <Clock className="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold">
+                {reservations.filter((r) => r.status === 'Reserved').length}
+              </p>
+              <p className="text-xs text-muted-foreground">Upcoming</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-green-500/10">
+              <LogIn className="w-5 h-5 text-green-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold">
+                {
+                  reservations.filter((r) => r.status === 'Checked-In')
+                    .length
+                }
+              </p>
+              <p className="text-xs text-muted-foreground">Checked In</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10">
+              <BedDouble className="w-5 h-5 text-emerald-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold">
+                {availableRooms.length}
+              </p>
+              <p className="text-xs text-muted-foreground">Rooms Available</p>
+            </div>
+          </div>
         </Card>
       </div>
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
+        {['all', 'Reserved', 'Checked-In', 'Checked-Out', 'Cancelled'].map(
+          (status) => {
+            const count =
+              status === 'all'
+                ? reservations.length
+                : reservations.filter((r) => r.status === status).length;
+            return (
+              <Button
+                key={status}
+                variant={filterStatus === status ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterStatus(status)}
+                className={cn(
+                  filterStatus === status &&
+                    'bg-gradient-gold text-primary-foreground shadow-gold'
+                )}
+              >
+                {status === 'all' ? 'All' : statusConfig[status]?.label || status}
+                <span className="ml-1.5 text-xs opacity-70">({count})</span>
+              </Button>
+            );
+          }
+        )}
+      </div>
+
+      {/* Reservation Cards */}
+      {loading ? (
+        <div className="flex items-center justify-center h-48">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : filteredReservations.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <CalendarCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="font-display text-xl font-semibold text-muted-foreground mb-1">
+            {filterStatus === 'all'
+              ? 'No reservations yet'
+              : `No ${statusConfig[filterStatus]?.label.toLowerCase()} bookings`}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+            {filterStatus === 'all'
+              ? 'Start your Grand Romeo experience — book your first room today!'
+              : 'Try a different filter to see your other bookings.'}
+          </p>
+          {filterStatus === 'all' && (
+            <Button
+              onClick={() => setDialogOpen(true)}
+              className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Book a Room
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredReservations.map((reservation) => {
+            const config =
+              statusConfig[reservation.status] || statusConfig['Reserved'];
+            const roomType =
+              reservation.rooms?.[0]?.room?.room_type || 'Standard';
+            const info = getRoomTypeInfo(roomType);
+            const nights = differenceInDays(
+              new Date(reservation.check_out_date),
+              new Date(reservation.check_in_date)
+            );
+            const estimatedCost =
+              nights *
+              Number(reservation.rooms?.[0]?.room?.daily_rate || 0);
+
+            return (
+              <div
+                key={reservation.reservation_id}
+                className={cn(
+                  'rounded-xl border overflow-hidden bg-gradient-to-r transition-all duration-200 hover:shadow-elegant',
+                  config.bgColor
+                )}
+              >
+                <div className="flex flex-col lg:flex-row">
+                  {/* Color Accent */}
+                  <div
+                    className={cn(
+                      'lg:w-2 h-1.5 lg:h-auto bg-gradient-to-b',
+                      info.gradient
+                    )}
+                  />
+
+                  <div className="flex-1 p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      {/* Left */}
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={cn(
+                            'w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0',
+                            info.gradient
+                          )}
+                        >
+                          <BedDouble className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-display text-lg font-bold">
+                              Booking #{reservation.reservation_id}
+                            </h4>
+                            <Badge
+                              variant="outline"
+                              className={cn('border', config.color)}
+                            >
+                              <config.icon className="w-3 h-3 mr-1" />
+                              {config.label}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Room{' '}
+                            {reservation.rooms?.[0]?.room_number || 'N/A'} —{' '}
+                            {roomType}{' '}
+                            {roomType === 'Presidential' ? 'Suite' : 'Room'}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-muted-foreground">
+                            <span>
+                              {format(
+                                new Date(reservation.check_in_date),
+                                'MMM d, yyyy'
+                              )}{' '}
+                              →{' '}
+                              {format(
+                                new Date(reservation.check_out_date),
+                                'MMM d, yyyy'
+                              )}
+                            </span>
+                            <span>{nights} night(s)</span>
+                            <span>
+                              {reservation.total_guests} guest(s)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right */}
+                      <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+                        {estimatedCost > 0 && (
+                          <p className="font-display text-xl font-bold text-primary">
+                            ₱{estimatedCost.toLocaleString()}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedReservation(reservation);
+                              setViewDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1" />
+                            Details
+                          </Button>
+                          {reservation.status === 'Reserved' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                              onClick={() => {
+                                setSelectedReservation(reservation);
+                                setCancelDialogOpen(true);
+                              }}
+                            >
+                              <Ban className="w-3.5 h-3.5 mr-1" />
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* View Reservation Details Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-lg">
+          {selectedReservation && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-xl">
+                  Booking #{selectedReservation.reservation_id}
+                </DialogTitle>
+                <DialogDescription>Reservation details</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                {/* Room Card */}
+                {selectedReservation.rooms?.[0]?.room && (
+                  <div
+                    className={cn(
+                      'rounded-xl p-4 bg-gradient-to-r text-white',
+                      getRoomTypeInfo(
+                        selectedReservation.rooms[0].room.room_type
+                      ).gradient
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-display text-lg font-bold">
+                          Room{' '}
+                          {selectedReservation.rooms[0].room_number}
+                        </p>
+                        <p className="text-sm text-white/80">
+                          {selectedReservation.rooms[0].room.room_type}{' '}
+                          {selectedReservation.rooms[0].room.room_type ===
+                          'Presidential'
+                            ? 'Suite'
+                            : 'Room'}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'border',
+                          statusConfig[selectedReservation.status]?.color
+                        )}
+                      >
+                        {statusConfig[selectedReservation.status]?.label}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Check-in
+                    </p>
+                    <p className="font-medium">
+                      {format(
+                        new Date(selectedReservation.check_in_date),
+                        'EEE, MMM d, yyyy'
+                      )}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Check-out
+                    </p>
+                    <p className="font-medium">
+                      {format(
+                        new Date(selectedReservation.check_out_date),
+                        'EEE, MMM d, yyyy'
+                      )}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Duration
+                    </p>
+                    <p className="font-medium">
+                      {differenceInDays(
+                        new Date(selectedReservation.check_out_date),
+                        new Date(selectedReservation.check_in_date)
+                      )}{' '}
+                      night(s)
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Guests
+                    </p>
+                    <p className="font-medium">
+                      {selectedReservation.total_guests} guest(s)
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Booked On
+                    </p>
+                    <p className="font-medium">
+                      {format(
+                        new Date(selectedReservation.created_at),
+                        'MMM d, yyyy'
+                      )}
+                    </p>
+                  </div>
+                  {selectedReservation.rooms?.[0]?.room && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Estimated Total
+                      </p>
+                      <p className="font-display text-lg font-bold text-primary">
+                        ₱
+                        {(
+                          differenceInDays(
+                            new Date(
+                              selectedReservation.check_out_date
+                            ),
+                            new Date(
+                              selectedReservation.check_in_date
+                            )
+                          ) *
+                          Number(
+                            selectedReservation.rooms[0].room
+                              .daily_rate
+                          )
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Room Amenities Preview */}
+                {selectedReservation.rooms?.[0]?.room && (
+                  <div className="pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                      Room Amenities
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {getRoomTypeInfo(
+                        selectedReservation.rooms[0].room.room_type
+                      ).amenities.map((amenity, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1 text-xs bg-secondary/80 px-2 py-1 rounded-md"
+                        >
+                          <amenity.icon className="w-3 h-3" />
+                          {amenity.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-destructive">
+              Cancel Reservation
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel Booking #
+              {selectedReservation?.reservation_id}? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedReservation && (
+            <div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 text-sm">
+              <p>
+                <strong>Room:</strong>{' '}
+                {selectedReservation.rooms?.[0]?.room_number || 'N/A'}
+              </p>
+              <p>
+                <strong>Dates:</strong>{' '}
+                {format(
+                  new Date(selectedReservation.check_in_date),
+                  'MMM d'
+                )}{' '}
+                —{' '}
+                {format(
+                  new Date(selectedReservation.check_out_date),
+                  'MMM d, yyyy'
+                )}
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCancelDialogOpen(false)}
+            >
+              Keep Reservation
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelReservation}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                'Yes, Cancel Booking'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

@@ -163,3 +163,32 @@ export const paymentService = {
   },
 };
 
+// =====================
+// GUEST PROFILE (Guest: own profile only)
+// =====================
+export const guestService = {
+  async updateProfile(
+    guestId: number,
+    data: {
+      first_name: string;
+      last_name: string;
+      email: string;
+      contact_number: string | null;
+      street: string | null;
+      city: string | null;
+      state_province: string | null;
+      zip_code: string | null;
+      country: string | null;
+    }
+  ): Promise<Guest> {
+    const { data: updated, error } = await supabase
+      .from('guests')
+      .update(data)
+      .eq('guest_id', guestId)
+      .select()
+      .single();
+    if (error) throw error;
+    return updated as Guest;
+  },
+};
+

@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import RoomsPage from "./pages/Rooms";
 import MyReservationsPage from "./pages/MyReservations";
+import ProfilePage from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -62,6 +63,7 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
     <Route path="/my-reservations" element={<ProtectedRoute><MyReservationsPage /></ProtectedRoute>} />
+    <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
