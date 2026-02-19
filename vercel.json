@@ -1,5 +1,10 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "_comment": "This repo contains 3 separate apps. Deploy each as a separate Vercel project:",
+  "_instructions": [
+    "1. Go to Vercel Dashboard and create 3 new projects",
+    "2. For hotel-guest: Set Root Directory to 'hotel-guest'",
+    "3. For hotel-front-desk: Set Root Directory to 'hotel-front-desk'",
+    "4. For hotel-admin: Set Root Directory to 'hotel-admin'",
+    "5. Each project will use its own vercel.json file in its directory"
   ]
 }
