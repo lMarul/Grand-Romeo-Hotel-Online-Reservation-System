@@ -1,5 +1,6 @@
-// Database service layer - All Supabase CRUD operations
-// Matches the DATAMA2 Finals Paper schema exactly
+// Database service layer - Front Desk Portal
+// Front desk staff can manage reservations, view guests/rooms, process payments
+// But cannot: manage staff, manage accounts, delete rooms/guests, or see profiles
 
 import { supabase } from '@/lib/supabase';
 import type {
@@ -9,12 +10,10 @@ import type {
   Reservation,
   Payment,
   DashboardStats,
-  Profile,
-  UserRole,
 } from '@/types/hotel';
 
 // =====================
-// GUESTS
+// GUESTS (Front Desk: read + create, no delete)
 // =====================
 export const guestService = {
   async getAll(): Promise<Guest[]> {
@@ -57,14 +56,6 @@ export const guestService = {
     return data as Guest;
   },
 
-  async delete(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('guests')
-      .delete()
-      .eq('guest_id', id);
-    if (error) throw error;
-  },
-
   async search(query: string): Promise<Guest[]> {
     const { data, error } = await supabase
       .from('guests')
@@ -77,7 +68,7 @@ export const guestService = {
 };
 
 // =====================
-// ROOMS
+// ROOMS (Front Desk: read + update status, no create/delete)
 // =====================
 export const roomService = {
   async getAll(): Promise<Room[]> {
@@ -109,16 +100,6 @@ export const roomService = {
     return data as Room[];
   },
 
-  async create(room: Room): Promise<Room> {
-    const { data, error } = await supabase
-      .from('rooms')
-      .insert(room)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Room;
-  },
-
   async update(roomNumber: string, updates: Partial<Room>): Promise<Room> {
     const { data, error } = await supabase
       .from('rooms')
@@ -129,18 +110,10 @@ export const roomService = {
     if (error) throw error;
     return data as Room;
   },
-
-  async delete(roomNumber: string): Promise<void> {
-    const { error } = await supabase
-      .from('rooms')
-      .delete()
-      .eq('room_number', roomNumber);
-    if (error) throw error;
-  },
 };
 
 // =====================
-// STAFF
+// STAFF (Front Desk: read-only for assignment to reservations)
 // =====================
 export const staffService = {
   async getAll(): Promise<Staff[]> {
@@ -160,35 +133,6 @@ export const staffService = {
       .single();
     if (error) throw error;
     return data as Staff;
-  },
-
-  async create(staff: Omit<Staff, 'staff_id'>): Promise<Staff> {
-    const { data, error } = await supabase
-      .from('staff')
-      .insert(staff)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Staff;
-  },
-
-  async update(id: number, updates: Partial<Staff>): Promise<Staff> {
-    const { data, error } = await supabase
-      .from('staff')
-      .update(updates)
-      .eq('staff_id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Staff;
-  },
-
-  async delete(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('staff')
-      .delete()
-      .eq('staff_id', id);
-    if (error) throw error;
   },
 };
 
@@ -528,13 +472,11 @@ export const paymentService = {
 };
 
 // =====================
-// DASHBOARD STATS
+// DASHBOARD STATS (Front Desk: operational stats, no revenue)
 // =====================
 export const dashboardService = {
   async getStats(): Promise<DashboardStats> {
     const today = new Date().toISOString().split('T')[0];
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      .toISOString().split('T')[0];
 
     const [
       { count: totalGuests },
@@ -542,23 +484,17 @@ export const dashboardService = {
       { data: activeRes },
       { data: todayCheckInsData },
       { data: todayCheckOutsData },
-      { data: monthlyPayments },
     ] = await Promise.all([
       supabase.from('guests').select('*', { count: 'exact', head: true }),
       supabase.from('rooms').select('*'),
       supabase.from('reservations').select('*').in('status', ['Reserved', 'Checked-In']),
       supabase.from('reservations').select('*').eq('check_in_date', today),
       supabase.from('reservations').select('*').eq('check_out_date', today),
-      supabase.from('payments').select('amount_paid').gte('payment_date', monthStart),
     ]);
 
     const allRooms = rooms || [];
     const availableRooms = allRooms.filter((r: any) => r.status === 'Available').length;
     const occupiedRooms = allRooms.filter((r: any) => r.status === 'Occupied').length;
-    const monthlyRevenue = (monthlyPayments || []).reduce(
-      (sum: number, p: any) => sum + Number(p.amount_paid),
-      0
-    );
 
     return {
       totalGuests: totalGuests || 0,
@@ -568,122 +504,7 @@ export const dashboardService = {
       activeReservations: (activeRes || []).length,
       todayCheckIns: (todayCheckInsData || []).length,
       todayCheckOuts: (todayCheckOutsData || []).length,
-      monthlyRevenue,
+      monthlyRevenue: 0, // Front desk does not access revenue data
     };
-  },
-};
-
-// =====================
-// PDF QUERY DEMONSTRATIONS
-// These replicate the SQL queries from the DATAMA2 paper
-// =====================
-export const queryDemos = {
-  // Query 1: List all guests and their reservations
-  async guestsWithReservations() {
-    const { data, error } = await supabase
-      .from('reservations')
-      .select(`
-        reservation_id,
-        check_in_date,
-        check_out_date,
-        status,
-        guest:guests(first_name, last_name)
-      `)
-      .order('reservation_id');
-    if (error) throw error;
-    return data;
-  },
-
-  // Query 2: Show all available rooms with rates
-  async availableRoomsWithRates() {
-    const { data, error } = await supabase
-      .from('rooms')
-      .select('*')
-      .eq('status', 'Available');
-    if (error) throw error;
-    return data;
-  },
-
-  // Query 3: Guests currently checked in
-  async checkedInGuests() {
-    const { data, error } = await supabase
-      .from('reservations')
-      .select(`
-        guest:guests(guest_id, first_name, last_name)
-      `)
-      .eq('status', 'Checked-In');
-    if (error) throw error;
-    return data;
-  },
-
-  // Query 4: Total amount spent by each guest
-  async totalSpentByGuest() {
-    const { data, error } = await supabase
-      .from('payments')
-      .select(`
-        amount_paid,
-        reservation:reservations(
-          guest:guests(first_name, last_name)
-        )
-      `);
-    if (error) throw error;
-    return data;
-  },
-
-  // Query 5: Staff and reservations handled
-  async staffReservationCount() {
-    const { data, error } = await supabase
-      .from('reservation_staff')
-      .select(`
-        staff:staff(first_name, last_name),
-        reservation_id
-      `);
-    if (error) throw error;
-    return data;
-  },
-};
-
-// =====================
-// PROFILES (User Accounts)
-// =====================
-export const profileService = {
-  async getAll(): Promise<Profile[]> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data as Profile[];
-  },
-
-  async getById(id: string): Promise<Profile> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .single();
-    if (error) throw error;
-    return data as Profile;
-  },
-
-  async updateRole(id: string, role: UserRole): Promise<Profile> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ role })
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Profile;
-  },
-
-  async search(query: string): Promise<Profile[]> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .ilike('full_name', `%${query}%`)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data as Profile[];
   },
 };

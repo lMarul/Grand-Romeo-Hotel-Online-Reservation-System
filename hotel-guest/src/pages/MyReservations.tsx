@@ -79,8 +79,8 @@ export default function MyReservations() {
     try {
       setLoading(true);
       
-      // Fetch rooms
-      const roomsData = await roomService.getAll();
+      // Fetch only available rooms (guests shouldn't see occupied/maintenance)
+      const roomsData = await roomService.getAvailable();
       setRooms(roomsData);
 
       // Use logged-in user's data directly - they are the guest
@@ -93,9 +93,8 @@ export default function MyReservations() {
           contactNumber: user.contact_number || '',
         }));
         
-        // Fetch reservations for this guest using their guest_id
-        const allReservations = await reservationService.getAll();
-        const myReservations = allReservations.filter(r => r.guest_id === user.guest_id);
+        // Fetch only this guest's reservations (server-side filter)
+        const myReservations = await reservationService.getByGuestId(user.guest_id);
         setReservations(myReservations);
       }
     } catch (error) {

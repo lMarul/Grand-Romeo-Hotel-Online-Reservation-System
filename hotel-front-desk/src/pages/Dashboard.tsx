@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/layout';
 import { StatCard, RecentReservations, RoomStatusGrid } from '@/components/dashboard';
 import { dashboardService, reservationService, roomService } from '@/lib/database';
 import type { DashboardStats, Reservation, Room } from '@/types/hotel';
-import { Users, BedDouble, CalendarCheck, DollarSign, ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react';
+import { BedDouble, CalendarCheck, ArrowUpRight, ArrowDownRight, Loader2, Users } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -35,7 +35,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout title="Dashboard" subtitle="Loading...">
+      <DashboardLayout title="Front Desk" subtitle="Loading...">
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   if (error || !stats) {
     return (
-      <DashboardLayout title="Dashboard" subtitle="Error">
+      <DashboardLayout title="Front Desk" subtitle="Error">
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <p className="text-lg text-destructive mb-4">{error || 'Failed to load data'}</p>
           <button 
@@ -60,16 +60,9 @@ export default function Dashboard() {
   }
 
   return (
-    <DashboardLayout title="Dashboard" subtitle="Welcome back! Here's what's happening today.">
-      {/* Stats Grid */}
+    <DashboardLayout title="Front Desk" subtitle="Today's operations overview">
+      {/* Stats Grid - Operational focus, NO revenue */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Monthly Revenue"
-          value={`₱${stats.monthlyRevenue.toLocaleString()}`}
-          icon={DollarSign}
-          subtitle="this month"
-          variant="primary"
-        />
         <StatCard
           title="Available Rooms"
           value={stats.availableRooms}
@@ -81,7 +74,8 @@ export default function Dashboard() {
           title="Active Reservations"
           value={stats.activeReservations}
           icon={CalendarCheck}
-          subtitle="current"
+          subtitle="reserved or checked-in"
+          variant="primary"
         />
         <StatCard
           title="Registered Guests"
@@ -89,10 +83,17 @@ export default function Dashboard() {
           icon={Users}
           subtitle="total"
         />
+        <StatCard
+          title="Occupancy Rate"
+          value={`${stats.totalRooms > 0 ? Math.round((stats.occupiedRooms / stats.totalRooms) * 100) : 0}%`}
+          icon={BedDouble}
+          subtitle={`${stats.occupiedRooms} occupied`}
+          variant="warning"
+        />
       </div>
 
       {/* Today's Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-3 mb-2">
             <ArrowDownRight className="w-5 h-5 text-success" />
@@ -106,15 +107,6 @@ export default function Dashboard() {
             <span className="text-sm text-muted-foreground">Today's Check-outs</span>
           </div>
           <p className="text-3xl font-display font-bold text-foreground">{stats.todayCheckOuts}</p>
-        </div>
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <BedDouble className="w-5 h-5 text-warning" />
-            <span className="text-sm text-muted-foreground">Occupancy Rate</span>
-          </div>
-          <p className="text-3xl font-display font-bold text-foreground">
-            {stats.totalRooms > 0 ? Math.round((stats.occupiedRooms / stats.totalRooms) * 100) : 0}%
-          </p>
         </div>
       </div>
 
