@@ -117,7 +117,7 @@ export const reservationService = {
       for (const rn of roomNumbers) {
         await supabase
           .from('rooms')
-          .update({ status: 'Reserved' })
+          .update({ status: 'Reserved' } as any)
           .eq('room_number', rn);
       }
     }
@@ -136,14 +136,14 @@ export const reservationService = {
       for (const r of rooms) {
         await supabase
           .from('rooms')
-          .update({ status: 'Available' })
-          .eq('room_number', r.room_number);
+          .update({ status: 'Available' } as any)
+          .eq('room_number', (r as any).room_number);
       }
     }
 
     const { error } = await supabase
       .from('reservations')
-      .update({ status: 'Cancelled' })
+      .update({ status: 'Cancelled' } as any)
       .eq('reservation_id', id);
     if (error) throw error;
   },
@@ -184,7 +184,7 @@ export const guestService = {
   ): Promise<Guest> {
     const { data: updated, error } = await supabase
       .from('guests')
-      .update(data)
+      .update(data as any)
       .eq('guest_id', guestId)
       .select()
       .single();

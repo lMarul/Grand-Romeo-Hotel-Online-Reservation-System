@@ -208,11 +208,11 @@ export default function MyReservations() {
         title: 'Reservation Confirmed!',
         description: `Booking #${newReservation.reservation_id} has been created successfully.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating reservation:', error);
       toast({
         title: 'Booking Failed',
-        description: 'Unable to complete your reservation. Please try again.',
+        description: error?.message || 'Unable to complete your reservation. Please try again.',
         variant: 'destructive',
       });
     } finally {

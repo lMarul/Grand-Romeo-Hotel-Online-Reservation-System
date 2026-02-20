@@ -121,5 +121,28 @@ CREATE TABLE IF NOT EXISTS payments (
 -- ============================================================
 -- END OF DDL
 -- ============================================================
+
+
+-- =====================================================
+-- PART 3: DISABLE ROW LEVEL SECURITY
+-- =====================================================
+-- Supabase enables RLS by default on all tables.
+-- Since this project uses application-level authentication
+-- (username/password in tables), we disable RLS to allow
+-- the anon key to perform CRUD operations.
+-- =====================================================
+
+ALTER TABLE admins DISABLE ROW LEVEL SECURITY;
+ALTER TABLE front_desk DISABLE ROW LEVEL SECURITY;
+ALTER TABLE guests DISABLE ROW LEVEL SECURITY;
+ALTER TABLE rooms DISABLE ROW LEVEL SECURITY;
+ALTER TABLE staff DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reservations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reservation_room DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reservation_staff DISABLE ROW LEVEL SECURITY;
+ALTER TABLE payments DISABLE ROW LEVEL SECURITY;
+
+
+-- ============================================================
 -- Next step: Run DML.sql for seed data
 -- ============================================================
