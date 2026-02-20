@@ -13,36 +13,36 @@
 
 -- ADMINS (4 team members)
 INSERT INTO admins (admin_id, username, password, email, first_name, last_name, contact_number) VALUES
-    (1, 'marwin', 'Admin123', 'marwin.gonzales@grandromeo.com', 'Marwin John', 'Gonzales', '+639171234567'),
-    (2, 'romeo', 'Admin123', 'romeo.albeza@grandromeo.com', 'Romeo', 'Albeza Jr.', '+639171234568'),
-    (3, 'nairb', 'Admin123', 'nairb.varona@grandromeo.com', 'Nairb Ackilis', 'Varona', '+639171234569'),
-    (4, 'johncarlo', 'Admin123', 'johncarlo.baracena@grandromeo.com', 'John Carlo', 'Baracena', '+639171234570')
+    (1, 'marwin', 'Admin123!', 'marwin.gonzales@grandromeo.com', 'Marwin John', 'Gonzales', '+639171234567'),
+    (2, 'romeo', 'Admin123!', 'romeo.albeza@grandromeo.com', 'Romeo', 'Albeza Jr.', '+639171234568'),
+    (3, 'nairb', 'Admin123!', 'nairb.varona@grandromeo.com', 'Nairb Ackilis', 'Varona', '+639171234569'),
+    (4, 'johncarlo', 'Admin123!', 'johncarlo.baracena@grandromeo.com', 'John Carlo', 'Baracena', '+639171234570')
 ON CONFLICT (admin_id) DO NOTHING;
 
 SELECT setval('admins_admin_id_seq', 4, true);
 
 -- FRONT DESK (4 accounts)
 INSERT INTO front_desk (front_desk_id, username, password, email, first_name, last_name, contact_number) VALUES
-    (1, 'patricia', 'FrontDesk123', 'patricia.cruz@grandromeo.com', 'Patricia', 'Cruz', '+639181234571'),
-    (2, 'roberto', 'FrontDesk123', 'roberto.santos@grandromeo.com', 'Roberto', 'Santos', '+639181234572'),
-    (3, 'elena', 'FrontDesk123', 'elena.rivera@grandromeo.com', 'Elena', 'Rivera', '+639181234573'),
-    (4, 'marco', 'FrontDesk123', 'marco.lim@grandromeo.com', 'Marco', 'Lim', '+639181234574')
+    (1, 'patricia', 'FrontDesk123!', 'patricia.cruz@grandromeo.com', 'Patricia', 'Cruz', '+639181234571'),
+    (2, 'roberto', 'FrontDesk123!', 'roberto.santos@grandromeo.com', 'Roberto', 'Santos', '+639181234572'),
+    (3, 'elena', 'FrontDesk123!', 'elena.rivera@grandromeo.com', 'Elena', 'Rivera', '+639181234573'),
+    (4, 'marco', 'FrontDesk123!', 'marco.lim@grandromeo.com', 'Marco', 'Lim', '+639181234574')
 ON CONFLICT (front_desk_id) DO NOTHING;
 
 SELECT setval('front_desk_front_desk_id_seq', 4, true);
 
 -- GUESTS (10 accounts)
 INSERT INTO guests (guest_id, username, password, email, first_name, last_name, contact_number, street, city, state_province, zip_code, country) VALUES
-    (1, 'juan', 'Guest123', 'juan.delacruz@email.com', 'Juan', 'Dela Cruz', '09123456789', '123 Manila Street', 'Manila', 'Metro Manila', '1000', 'Philippines'),
-    (2, 'maria', 'Guest123', 'maria.santos@email.com', 'Maria', 'Santos', '09234567890', '456 Makati Avenue', 'Makati', 'Metro Manila', '1200', 'Philippines'),
-    (3, 'carlos', 'Guest123', 'carlos.reyes@email.com', 'Carlos', 'Reyes', '09345678901', '789 Quezon City Road', 'Quezon City', 'Metro Manila', '1100', 'Philippines'),
-    (4, 'ana', 'Guest123', 'ana.garcia@email.com', 'Ana', 'Garcia', '09456789012', '321 Pasig Boulevard', 'Pasig', 'Metro Manila', '1600', 'Philippines'),
-    (5, 'miguel', 'Guest123', 'miguel.torres@email.com', 'Miguel', 'Torres', '09567890123', '654 Taguig Street', 'Taguig', 'Metro Manila', '1630', 'Philippines'),
-    (6, 'sofia', 'Guest123', 'sofia.ramos@email.com', 'Sofia', 'Ramos', '09678901234', '987 Paranaque Lane', 'Paranaque', 'Metro Manila', '1700', 'Philippines'),
-    (7, 'diego', 'Guest123', 'diego.cruz@email.com', 'Diego', 'Cruz', '09789012345', '147 Las Pinas Road', 'Las Pinas', 'Metro Manila', '1740', 'Philippines'),
-    (8, 'isabella', 'Guest123', 'isabella.mendoza@email.com', 'Isabella', 'Mendoza', '09890123456', '258 Muntinlupa Drive', 'Muntinlupa', 'Metro Manila', '1770', 'Philippines'),
-    (9, 'gabriel', 'Guest123', 'gabriel.villanueva@email.com', 'Gabriel', 'Villanueva', '09901234567', '369 Marikina Heights', 'Marikina', 'Metro Manila', '1800', 'Philippines'),
-    (10, 'camila', 'Guest123', 'camila.bautista@email.com', 'Camila', 'Bautista', '09012345678', '741 Caloocan Avenue', 'Caloocan', 'Metro Manila', '1400', 'Philippines')
+    (1, 'juan', 'Guest123!', 'juan.delacruz@email.com', 'Juan', 'Dela Cruz', '09123456789', '123 Manila Street', 'Manila', 'Metro Manila', '1000', 'Philippines'),
+    (2, 'maria', 'Guest123!', 'maria.santos@email.com', 'Maria', 'Santos', '09234567890', '456 Makati Avenue', 'Makati', 'Metro Manila', '1200', 'Philippines'),
+    (3, 'carlos', 'Guest123!', 'carlos.reyes@email.com', 'Carlos', 'Reyes', '09345678901', '789 Quezon City Road', 'Quezon City', 'Metro Manila', '1100', 'Philippines'),
+    (4, 'ana', 'Guest123!', 'ana.garcia@email.com', 'Ana', 'Garcia', '09456789012', '321 Pasig Boulevard', 'Pasig', 'Metro Manila', '1600', 'Philippines'),
+    (5, 'miguel', 'Guest123!', 'miguel.torres@email.com', 'Miguel', 'Torres', '09567890123', '654 Taguig Street', 'Taguig', 'Metro Manila', '1630', 'Philippines'),
+    (6, 'sofia', 'Guest123!', 'sofia.ramos@email.com', 'Sofia', 'Ramos', '09678901234', '987 Paranaque Lane', 'Paranaque', 'Metro Manila', '1700', 'Philippines'),
+    (7, 'diego', 'Guest123!', 'diego.cruz@email.com', 'Diego', 'Cruz', '09789012345', '147 Las Pinas Road', 'Las Pinas', 'Metro Manila', '1740', 'Philippines'),
+    (8, 'isabella', 'Guest123!', 'isabella.mendoza@email.com', 'Isabella', 'Mendoza', '09890123456', '258 Muntinlupa Drive', 'Muntinlupa', 'Metro Manila', '1770', 'Philippines'),
+    (9, 'gabriel', 'Guest123!', 'gabriel.villanueva@email.com', 'Gabriel', 'Villanueva', '09901234567', '369 Marikina Heights', 'Marikina', 'Metro Manila', '1800', 'Philippines'),
+    (10, 'camila', 'Guest123!', 'camila.bautista@email.com', 'Camila', 'Bautista', '09012345678', '741 Caloocan Avenue', 'Caloocan', 'Metro Manila', '1400', 'Philippines')
 ON CONFLICT (guest_id) DO NOTHING;
 
 SELECT setval('guests_guest_id_seq', 10, true);
@@ -85,17 +85,17 @@ ON CONFLICT (staff_id) DO NOTHING;
 SELECT setval('staff_staff_id_seq', 7, true);
 
 -- RESERVATIONS
-INSERT INTO reservations (reservation_id, guest_id, check_in_date, check_out_date, total_guests, special_requests, status) VALUES
-    (1, 1, '2026-02-15', '2026-02-17', 2, 'Late check-in after 10 PM. Non-smoking room preferred.', 'Reserved'),
-    (2, 2, '2026-02-16', '2026-02-20', 3, 'Extra bed for child. High floor preferred.', 'Reserved'),
-    (3, 3, '2026-02-10', '2026-02-12', 4, NULL, 'Checked-In'),
-    (4, 4, '2026-02-01', '2026-02-05', 2, 'Airport shuttle on arrival.', 'Checked-Out'),
-    (5, 5, '2026-02-12', '2026-02-18', 6, 'Connecting rooms please. Celebrating anniversary.', 'Reserved'),
-    (6, 6, '2026-02-20', '2026-02-22', 2, NULL, 'Reserved'),
-    (7, 7, '2026-02-25', '2026-02-28', 3, 'Early check-in if possible. Need baby crib.', 'Reserved'),
-    (8, 8, '2026-01-20', '2026-01-22', 2, NULL, 'No-Show'),
-    (9, 9, '2026-02-05', '2026-02-07', 1, 'Quiet room away from elevator.', 'Checked-Out'),
-    (10, 10, '2026-02-28', '2026-03-03', 2, 'Vegetarian meal options. Late checkout requested.', 'Reserved')
+INSERT INTO reservations (reservation_id, guest_id, check_in_date, check_out_date, check_in_time, check_out_time, total_guests, special_requests, status) VALUES
+    (1, 1, '2026-02-15', '2026-02-17', NULL, NULL, 2, 'Late check-in after 10 PM. Non-smoking room preferred.', 'Reserved'),
+    (2, 2, '2026-02-16', '2026-02-20', NULL, NULL, 3, 'Extra bed for child. High floor preferred.', 'Reserved'),
+    (3, 3, '2026-02-10', '2026-02-12', '2026-02-10 15:30:00+00', NULL, 4, NULL, 'Checked-In'),
+    (4, 4, '2026-02-01', '2026-02-05', '2026-02-01 14:00:00+00', '2026-02-05 11:30:00+00', 2, 'Airport shuttle on arrival.', 'Checked-Out'),
+    (5, 5, '2026-02-12', '2026-02-18', NULL, NULL, 6, 'Connecting rooms please. Celebrating anniversary.', 'Reserved'),
+    (6, 6, '2026-02-20', '2026-02-22', NULL, NULL, 2, NULL, 'Reserved'),
+    (7, 7, '2026-02-25', '2026-02-28', NULL, NULL, 3, 'Early check-in if possible. Need baby crib.', 'Reserved'),
+    (8, 8, '2026-01-20', '2026-01-22', NULL, NULL, 2, NULL, 'No-Show'),
+    (9, 9, '2026-02-05', '2026-02-07', '2026-02-05 14:15:00+00', '2026-02-07 10:45:00+00', 1, 'Quiet room away from elevator.', 'Checked-Out'),
+    (10, 10, '2026-02-28', '2026-03-03', NULL, NULL, 2, 'Vegetarian meal options. Late checkout requested.', 'Reserved')
 ON CONFLICT (reservation_id) DO NOTHING;
 
 SELECT setval('reservations_reservation_id_seq', 10, true);

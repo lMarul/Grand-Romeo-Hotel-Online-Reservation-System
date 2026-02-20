@@ -142,7 +142,90 @@ CREATE TABLE IF NOT EXISTS payments (
 
 
 -- =====================================================
--- PART 3: DISABLE ROW LEVEL SECURITY
+-- PART 2: UPDATE EXISTING PASSWORDS (MIGRATION)
+-- =====================================================
+-- Update any existing passwords that don't meet the new
+-- password requirements. This ensures data compatibility
+-- before adding password constraints.
+-- =====================================================
+
+UPDATE admins 
+SET password = 'TempPass123!'
+WHERE NOT (
+    LENGTH(password) >= 6 AND
+    password ~ '[A-Z]' AND
+    password ~ '[a-z]' AND
+    password ~ '[0-9]' AND
+    password ~ '[!@#$%^&*(),.?":{}|<>]'
+);
+
+UPDATE front_desk 
+SET password = 'TempPass123!'
+WHERE NOT (
+    LENGTH(password) >= 6 AND
+    password ~ '[A-Z]' AND
+    password ~ '[a-z]' AND
+    password ~ '[0-9]' AND
+    password ~ '[!@#$%^&*(),.?":{}|<>]'
+);
+
+UPDATE guests 
+SET password = 'TempPass123!'
+WHERE NOT (
+    LENGTH(password) >= 6 AND
+    password ~ '[A-Z]' AND
+    password ~ '[a-z]' AND
+    password ~ '[0-9]' AND
+    password ~ '[!@#$%^&*(),.?":{}|<>]'
+);
+
+
+-- =====================================================
+-- PART 3: ADD PASSWORD CONSTRAINTS
+-- =====================================================
+-- Add CHECK constraints to enforce password strength
+-- requirements at the database level.
+-- =====================================================
+
+ALTER TABLE admins 
+DROP CONSTRAINT IF EXISTS admins_password_check;
+
+ALTER TABLE admins 
+ADD CONSTRAINT admins_password_check CHECK (
+    LENGTH(password) >= 6 AND
+    password ~ '[A-Z]' AND
+    password ~ '[a-z]' AND
+    password ~ '[0-9]' AND
+    password ~ '[!@#$%^&*(),.?":{}|<>]'
+);
+
+ALTER TABLE front_desk 
+DROP CONSTRAINT IF EXISTS front_desk_password_check;
+
+ALTER TABLE front_desk 
+ADD CONSTRAINT front_desk_password_check CHECK (
+    LENGTH(password) >= 6 AND
+    password ~ '[A-Z]' AND
+    password ~ '[a-z]' AND
+    password ~ '[0-9]' AND
+    password ~ '[!@#$%^&*(),.?":{}|<>]'
+);
+
+ALTER TABLE guests 
+DROP CONSTRAINT IF EXISTS guests_password_check;
+
+ALTER TABLE guests 
+ADD CONSTRAINT guests_password_check CHECK (
+    LENGTH(password) >= 6 AND
+    password ~ '[A-Z]' AND
+    password ~ '[a-z]' AND
+    password ~ '[0-9]' AND
+    password ~ '[!@#$%^&*(),.?":{}|<>]'
+);
+
+
+-- =====================================================
+-- PART 4: DISABLE ROW LEVEL SECURITY
 -- =====================================================
 -- Supabase enables RLS by default on all tables.
 -- Since this project uses application-level authentication
