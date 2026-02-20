@@ -21,6 +21,9 @@ export default function Register() {
   const [country, setCountry] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
@@ -28,15 +31,18 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUsernameError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+    if (username.length < 3) {
+      setUsernameError('Username must be at least 3 characters');
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setPasswordError('Password must be at least 6 characters');
       return;
     }
 
@@ -47,12 +53,12 @@ export default function Register() {
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
     if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
-      setError('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+      setPasswordError('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
       return;
     }
 
-    if (username.length < 3) {
-      setError('Username must be at least 3 characters');
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
       return;
     }
 
@@ -177,8 +183,11 @@ export default function Register() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="h-11"
+                className={`h-11 ${usernameError ? 'border-destructive' : ''}`}
               />
+              {usernameError && (
+                <p className="text-xs text-destructive mt-1">{usernameError}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -265,7 +274,7 @@ export default function Register() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-11 pr-10"
+                    className={`h-11 pr-10 ${passwordError ? 'border-destructive' : ''}`}
                   />
                   <button
                     type="button"
@@ -275,7 +284,11 @@ export default function Register() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground">Must include uppercase, lowercase, number & special character</p>
+                {passwordError ? (
+                  <p className="text-xs text-destructive mt-1">{passwordError}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Must include uppercase, lowercase, number & special character</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm</Label>
@@ -287,7 +300,7 @@ export default function Register() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="h-11 pr-10"
+                    className={`h-11 pr-10 ${confirmPasswordError ? 'border-destructive' : ''}`}
                   />
                   <button
                     type="button"
@@ -297,6 +310,9 @@ export default function Register() {
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {confirmPasswordError && (
+                  <p className="text-xs text-destructive mt-1">{confirmPasswordError}</p>
+                )}
               </div>
             </div>
 
