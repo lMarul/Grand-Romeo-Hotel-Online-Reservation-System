@@ -29,7 +29,7 @@ DROP POLICY IF EXISTS "Allow all operations on reservation_staff for authenticat
 DROP POLICY IF EXISTS "Allow all operations on payments for anon" ON payments;
 DROP POLICY IF EXISTS "Allow all operations on payments for authenticated" ON payments;
 
--- Enable RLS on all tables
+-- Enable RLS on all tables 
 ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE front_desk ENABLE ROW LEVEL SECURITY;
 ALTER TABLE guests ENABLE ROW LEVEL SECURITY;

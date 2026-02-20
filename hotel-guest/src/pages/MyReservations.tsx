@@ -86,6 +86,7 @@ const statusConfig: Record<
 export default function MyReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [allActiveReservations, setAllActiveReservations] = useState<Reservation[]>([]); // All active reservations for availability check
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -116,7 +117,7 @@ export default function MyReservations() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const roomsData = await roomService.getAvailable();
+      const roomsData = await roomService.getAll(); // Get all rooms
       setRooms(roomsData);
       if (user) {
         const myReservations = await reservationService.getByGuestId(
@@ -124,6 +125,10 @@ export default function MyReservations() {
         );
         setReservations(myReservations);
       }
+
+      // Fetch all active reservations for availability checking
+      const allActiveData = await reservationService.getAllActive();
+      setAllActiveReservations(allActiveData);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -136,11 +141,52 @@ export default function MyReservations() {
     }
   };
 
-  const availableRooms = rooms.filter((r) => r.status === 'Available');
-  const filteredAvailableRooms =
-    formData.selectedRoomType === 'all'
-      ? availableRooms
-      : availableRooms.filter((r) => r.room_type === formData.selectedRoomType);
+  // Helper function to check if a room has a date conflict with existing reservations
+  const isRoomAvailableForDates = (roomNumber: string, checkIn: string, checkOut: string): boolean => {
+    if (!checkIn || !checkOut) return true; // If no dates selected, show all rooms
+
+    const newCheckIn = new Date(checkIn);
+    const newCheckOut = new Date(checkOut);
+
+    // Find all reservations for this specific room
+    for (const reservation of allActiveReservations) {
+      // Check if this reservation includes the room we're checking
+      const roomAssignments = reservation.rooms as any;
+      if (!roomAssignments || !Array.isArray(roomAssignments)) continue;
+
+      const hasThisRoom = roomAssignments.some((r: any) => r.room_number === roomNumber);
+      if (!hasThisRoom) continue; // This reservation doesn't use this room
+
+      const existingCheckIn = new Date(reservation.check_in_date);
+      const existingCheckOut = new Date(reservation.check_out_date);
+
+      // Check for date overlap
+      // Two reservations conflict if: new_check_in < existing_check_out AND new_check_out > existing_check_in
+      // However, if new_check_in === existing_check_out, that's OK (checkout day can be next check-in day)
+      if (newCheckIn < existingCheckOut && newCheckOut > existingCheckIn) {
+        return false; // Conflict found
+      }
+    }
+
+    return true; // No conflicts
+  };
+
+  const availableRooms = rooms.filter((r) => {
+    // Never show rooms in maintenance
+    if (r.status === 'Maintenance') {
+      return false;
+    }
+
+    // Filter by room type
+    if (formData.selectedRoomType !== 'all' && r.room_type !== formData.selectedRoomType) {
+      return false;
+    }
+
+    // Filter by date availability
+    return isRoomAvailableForDates(r.room_number, formData.checkInDate, formData.checkOutDate);
+  });
+
+  const filteredAvailableRooms = availableRooms;
 
   const filteredReservations =
     filterStatus === 'all'
@@ -465,7 +511,9 @@ export default function MyReservations() {
                     <SelectContent>
                       {filteredAvailableRooms.length === 0 ? (
                         <SelectItem value="_none" disabled>
-                          No rooms available
+                          {formData.checkInDate && formData.checkOutDate 
+                            ? 'No rooms available for selected dates' 
+                            : 'Please select dates first'}
                         </SelectItem>
                       ) : (
                         filteredAvailableRooms.map((room) => {

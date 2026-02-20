@@ -24,8 +24,13 @@ export const roomService = {
   },
 
   async getAll(): Promise<Room[]> {
-    // For guest portal, "getAll" still only returns available rooms
-    return this.getAvailable();
+    // Get all rooms regardless of status for date-based availability checking
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('*')
+      .order('room_number');
+    if (error) throw error;
+    return data as Room[];
   },
 
   async getByNumber(roomNumber: string): Promise<Room> {
@@ -43,6 +48,25 @@ export const roomService = {
 // RESERVATIONS (Guest: own reservations only)
 // =====================
 export const reservationService = {
+  // Get all active reservations for availability checking
+  async getAllActive(): Promise<Reservation[]> {
+    const { data, error } = await supabase
+      .from('reservations')
+      .select(`
+        *,
+        guest:guests(first_name, last_name, contact_number),
+        rooms:reservation_room(
+          reservation_id,
+          room_number,
+          room:rooms(*)
+        )
+      `)
+      .in('status', ['Reserved', 'Checked-In'])
+      .order('reservation_id', { ascending: false });
+    if (error) throw error;
+    return data as unknown as Reservation[];
+  },
+
   // Get only the logged-in guest's reservations (server-side filter)
   async getByGuestId(guestId: number): Promise<Reservation[]> {
     const { data, error } = await supabase
