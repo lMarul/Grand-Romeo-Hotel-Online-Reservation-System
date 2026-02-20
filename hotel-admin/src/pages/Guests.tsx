@@ -84,6 +84,15 @@ export default function GuestsPage() {
       toast({ title: 'Error', description: 'Password must be at least 6 characters', variant: 'destructive' });
       return;
     }
+    // Password strength validation
+    const hasUpperCase = /[A-Z]/.test(formData.password);
+    const hasLowerCase = /[a-z]/.test(formData.password);
+    const hasNumber = /[0-9]/.test(formData.password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(formData.password);
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      toast({ title: 'Error', description: 'Password must contain uppercase, lowercase, number, and special character', variant: 'destructive' });
+      return;
+    }
     setSaving(true);
     try {
       await guestService.create({
@@ -189,7 +198,7 @@ export default function GuestsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password *</Label>
-                <Input id="password" type="password" placeholder="Min 6 characters" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+                <Input id="password" type="password" placeholder="Aa1!@example (uppercase, lowercase, number, special char)" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
               </div>              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>

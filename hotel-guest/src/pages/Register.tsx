@@ -40,6 +40,17 @@ export default function Register() {
       return;
     }
 
+    // Password strength validation
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      setError('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+      return;
+    }
+
     if (username.length < 3) {
       setError('Username must be at least 3 characters');
       return;
@@ -250,7 +261,7 @@ export default function Register() {
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Min 6 characters"
+                    placeholder="Aa1!@example"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -264,6 +275,7 @@ export default function Register() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <p className="text-xs text-muted-foreground">Must include uppercase, lowercase, number & special character</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm</Label>
