@@ -40,9 +40,9 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import { roomService, reservationService } from '@/lib/database';
+import { roomService, reservationService, paymentService } from '@/lib/database';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Room, Reservation } from '@/types/hotel';
+import type { Room, Reservation, Payment } from '@/types/hotel';
 import { ROOM_TYPE_DATA, ROOM_TYPES_ORDER, getRoomTypeInfo } from '@/data/roomTypes';
 import { cn } from '@/lib/utils';
 import { format, differenceInDays } from 'date-fns';
@@ -86,6 +86,7 @@ const statusConfig: Record<
 export default function MyReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -105,6 +106,7 @@ export default function MyReservations() {
     specialRequests: '',
     selectedRoom: '',
     selectedRoomType: 'all',
+    paymentMethod: 'Credit Card' as const,
   });
 
   useEffect(() => {
@@ -144,6 +146,15 @@ export default function MyReservations() {
     filterStatus === 'all'
       ? reservations
       : reservations.filter((r) => r.status === filterStatus);
+
+  const fetchPayments = async (reservationId: number) => {
+    try {
+      const paymentsData = await paymentService.getByReservation(reservationId);
+      setPayments(paymentsData);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    }
+  };
 
   const handleCreateReservation = async () => {
     if (
@@ -193,6 +204,15 @@ export default function MyReservations() {
         []
       );
 
+      // Create payment record
+      const totalAmount = calculateTotal();
+      await paymentService.create({
+        reservation_id: newReservation.reservation_id,
+        amount_paid: totalAmount,
+        payment_method: formData.paymentMethod,
+        transaction_id: `TXN${Date.now()}`,
+      });
+
       await fetchData();
       setDialogOpen(false);
       setFormData({
@@ -202,11 +222,12 @@ export default function MyReservations() {
         specialRequests: '',
         selectedRoom: '',
         selectedRoomType: 'all',
+        paymentMethod: 'Credit Card',
       });
 
       toast({
         title: 'Reservation Confirmed!',
-        description: `Booking #${newReservation.reservation_id} has been created successfully.`,
+        description: `Booking #${newReservation.reservation_id} has been created successfully. Payment of ₱${totalAmount.toLocaleString()} processed.`,
       });
     } catch (error: any) {
       console.error('Error creating reservation:', error);
@@ -504,6 +525,28 @@ export default function MyReservations() {
                   </div>
                 )}
 
+                {/* Payment Method */}
+                <div className="space-y-2">
+                  <Label htmlFor="paymentMethod">Payment Method</Label>
+                  <Select
+                    value={formData.paymentMethod}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, paymentMethod: value as any })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Credit Card">Credit Card</SelectItem>
+                      <SelectItem value="Debit Card">Debit Card</SelectItem>
+                      <SelectItem value="E-Wallet">E-Wallet</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Cost Summary */}
                 {selectedRoomDetails &&
                   formData.checkInDate &&
@@ -548,8 +591,16 @@ export default function MyReservations() {
                             )}
                           </span>
                         </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Payment Method
+                          </span>
+                          <span className="font-medium">
+                            {formData.paymentMethod}
+                          </span>
+                        </div>
                         <div className="flex justify-between pt-2 border-t border-border font-semibold text-lg">
-                          <span>Total</span>
+                          <span>Total Amount</span>
                           <span className="font-display text-primary">
                             ₱{calculateTotal().toLocaleString()}
                           </span>
@@ -799,6 +850,7 @@ export default function MyReservations() {
                             size="sm"
                             onClick={() => {
                               setSelectedReservation(reservation);
+                              fetchPayments(reservation.reservation_id);
                               setViewDialogOpen(true);
                             }}
                           >
@@ -965,6 +1017,41 @@ export default function MyReservations() {
                   <div className="pt-3 border-t border-border">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Special Requests</p>
                     <p className="text-sm bg-secondary/30 p-2 rounded-md">{selectedReservation.special_requests}</p>
+                  </div>
+                )}
+
+                {/* Payment Information */}
+                {payments.length > 0 && (
+                  <div className="pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                      Payment Details
+                    </p>
+                    <div className="space-y-2">
+                      {payments.map((payment) => (
+                        <div
+                          key={payment.payment_id}
+                          className="flex justify-between items-center bg-secondary/20 p-3 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium">
+                              {payment.payment_method}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(payment.payment_date), 'MMM d, yyyy')}
+                            </p>
+                          </div>
+                          <p className="font-display text-lg font-bold text-primary">
+                            ₱{Number(payment.amount_paid).toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <span className="font-semibold">Total Paid</span>
+                        <span className="font-display text-xl font-bold text-primary">
+                          ₱{payments.reduce((sum, p) => sum + Number(p.amount_paid), 0).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
 

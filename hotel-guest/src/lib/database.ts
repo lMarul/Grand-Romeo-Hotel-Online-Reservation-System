@@ -162,6 +162,21 @@ export const paymentService = {
     if (error) throw error;
     return data as Payment[];
   },
+
+  async create(payment: {
+    reservation_id: number;
+    amount_paid: number;
+    payment_method: string;
+    transaction_id?: string | null;
+  }): Promise<Payment> {
+    const { data, error } = await supabase
+      .from('payments')
+      .insert(payment as any)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Payment;
+  },
 };
 
 // =====================

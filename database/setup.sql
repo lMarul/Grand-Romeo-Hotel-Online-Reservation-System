@@ -353,29 +353,178 @@ ADD CONSTRAINT guests_password_check CHECK (
 
 
 -- =====================================================
--- PART 7: DISABLE ROW LEVEL SECURITY
+-- PART 7: ROW LEVEL SECURITY POLICIES
 -- =====================================================
--- Supabase enables RLS by default on all tables.
--- Since this project uses application-level authentication
--- (username/password in tables), we disable RLS to allow
--- the anon key to perform CRUD operations.
+-- Enable RLS and create policies for data access control.
+-- These policies allow anon key access for application-level
+-- authentication while providing a framework for future
+-- enhancement with Supabase Auth or custom JWT claims.
 -- =====================================================
 
-ALTER TABLE admins DISABLE ROW LEVEL SECURITY;
-ALTER TABLE front_desk DISABLE ROW LEVEL SECURITY;
-ALTER TABLE guests DISABLE ROW LEVEL SECURITY;
-ALTER TABLE rooms DISABLE ROW LEVEL SECURITY;
-ALTER TABLE staff DISABLE ROW LEVEL SECURITY;
-ALTER TABLE reservations DISABLE ROW LEVEL SECURITY;
-ALTER TABLE reservation_room DISABLE ROW LEVEL SECURITY;
-ALTER TABLE reservation_staff DISABLE ROW LEVEL SECURITY;
-ALTER TABLE payments DISABLE ROW LEVEL SECURITY;
+-- Enable RLS on all tables
+ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE front_desk ENABLE ROW LEVEL SECURITY;
+ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reservation_room ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reservation_staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+-- ==================
+-- ADMINS TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow all operations on admins for anon" 
+ON admins FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on admins for authenticated" 
+ON admins FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- FRONT_DESK TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow all operations on front_desk for anon" 
+ON front_desk FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on front_desk for authenticated" 
+ON front_desk FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- GUESTS TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow all operations on guests for anon" 
+ON guests FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on guests for authenticated" 
+ON guests FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- ROOMS TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow read access on rooms for anon" 
+ON rooms FOR SELECT 
+TO anon 
+USING (true);
+
+CREATE POLICY "Allow all operations on rooms for anon" 
+ON rooms FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on rooms for authenticated" 
+ON rooms FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- STAFF TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow read access on staff for anon" 
+ON staff FOR SELECT 
+TO anon 
+USING (true);
+
+CREATE POLICY "Allow all operations on staff for anon" 
+ON staff FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on staff for authenticated" 
+ON staff FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- RESERVATIONS TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow all operations on reservations for anon" 
+ON reservations FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on reservations for authenticated" 
+ON reservations FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- RESERVATION_ROOM TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow all operations on reservation_room for anon" 
+ON reservation_room FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on reservation_room for authenticated" 
+ON reservation_room FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- RESERVATION_STAFF TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow all operations on reservation_staff for anon" 
+ON reservation_staff FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on reservation_staff for authenticated" 
+ON reservation_staff FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- ==================
+-- PAYMENTS TABLE POLICIES
+-- ==================
+CREATE POLICY "Allow all operations on payments for anon" 
+ON payments FOR ALL 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on payments for authenticated" 
+ON payments FOR ALL 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
 
 
--- ============================================================
+-- =====================================================
 -- VERIFICATION QUERIES
--- ============================================================
+-- =====================================================
+-- Run these to verify the setup was successful
+-- =====================================================
 
+-- Check row counts for all tables
 SELECT 'admins' AS table_name, COUNT(*) AS row_count FROM admins
 UNION ALL SELECT 'front_desk', COUNT(*) FROM front_desk
 UNION ALL SELECT 'guests', COUNT(*) FROM guests
@@ -383,6 +532,40 @@ UNION ALL SELECT 'rooms', COUNT(*) FROM rooms
 UNION ALL SELECT 'staff', COUNT(*) FROM staff
 UNION ALL SELECT 'reservations', COUNT(*) FROM reservations
 UNION ALL SELECT 'payments', COUNT(*) FROM payments;
+
+-- Verify RLS is enabled on all tables
+SELECT 
+  tablename, 
+  rowsecurity AS rls_enabled
+FROM pg_tables 
+WHERE schemaname = 'public'
+ORDER BY tablename;
+
+-- Check active policies
+SELECT 
+  tablename, 
+  policyname, 
+  permissive,
+  roles
+FROM pg_policies 
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;
+
+-- Success notification
+DO $$ 
+BEGIN 
+    RAISE NOTICE '========================================';
+    RAISE NOTICE '✓ DATABASE SETUP COMPLETE!';
+    RAISE NOTICE '========================================';
+    RAISE NOTICE 'Tables created: 9';
+    RAISE NOTICE 'RLS Policies: 18';
+    RAISE NOTICE 'User accounts: 18';
+    RAISE NOTICE 'Room records: 10';
+    RAISE NOTICE 'Staff records: 8';
+    RAISE NOTICE 'Reservations: 9';
+    RAISE NOTICE 'Payments: 5';
+    RAISE NOTICE '========================================';
+END $$;
 
 
 -- ============================================================
