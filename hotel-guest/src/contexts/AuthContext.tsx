@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     stateProvince?: string,
     zipCode?: string,
     country?: string
-  ): Promise<{ error: Error | null }> {
+  ): Promise<{ error: Error | null }> => {
     try {
       // Insert new guest into the database
       const { data, error } = await supabase
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           state_province: stateProvince || null,
           zip_code: zipCode || null,
           country: country || null,
-        })
+        } as any)
         .select()
         .single();
 
