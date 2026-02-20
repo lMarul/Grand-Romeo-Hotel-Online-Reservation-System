@@ -69,12 +69,14 @@ export interface AccountProfile {
 export interface Room {
   room_number: string;
   room_type: RoomType;
+  bed_type: BedType;
   capacity: number;
   daily_rate: number;
   status: RoomStatus;
 }
 
 export type RoomType = 'Standard' | 'Deluxe' | 'Suite' | 'Presidential';
+export type BedType = 'Single' | 'Twin' | 'Double' | 'Queen' | 'King';
 export type RoomStatus = 'Available' | 'Occupied' | 'Maintenance' | 'Reserved';
 
 // =====================
@@ -103,6 +105,7 @@ export interface Reservation {
   check_in_time: string | null;
   check_out_time: string | null;
   total_guests: number;
+  special_requests: string | null;
   status: ReservationStatus;
   created_at: string;
   // Joined data (from related tables)
@@ -111,7 +114,7 @@ export interface Reservation {
   staff?: ReservationStaff[];
 }
 
-export type ReservationStatus = 'Reserved' | 'Checked-In' | 'Checked-Out' | 'Cancelled';
+export type ReservationStatus = 'Reserved' | 'Checked-In' | 'Checked-Out' | 'Cancelled' | 'No-Show';
 
 // =====================
 // RESERVATION_ROOM TABLE (Junction)

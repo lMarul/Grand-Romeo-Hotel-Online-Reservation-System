@@ -86,6 +86,7 @@ export const reservationService = {
       check_in_date: string;
       check_out_date: string;
       total_guests: number;
+      special_requests?: string | null;
       status?: string;
     },
     roomNumbers: string[],

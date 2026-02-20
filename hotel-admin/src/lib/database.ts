@@ -249,6 +249,7 @@ export const reservationService = {
       check_in_date: string;
       check_out_date: string;
       total_guests: number;
+      special_requests?: string | null;
       status?: string;
     },
     roomNumbers: string[],
@@ -306,6 +307,7 @@ export const reservationService = {
       check_in_date?: string;
       check_out_date?: string;
       total_guests?: number;
+      special_requests?: string | null;
     },
     roomNumbers?: string[],
     staffIds?: number[]
@@ -424,6 +426,22 @@ export const reservationService = {
 
     if (status === 'Cancelled') {
       // Free up rooms
+      const { data: rooms } = await supabase
+        .from('reservation_room')
+        .select('room_number')
+        .eq('reservation_id', id);
+      if (rooms) {
+        for (const r of rooms) {
+          await supabase
+            .from('rooms')
+            .update({ status: 'Available' })
+            .eq('room_number', r.room_number);
+        }
+      }
+    }
+
+    if (status === 'No-Show') {
+      // Free up rooms for no-show guests
       const { data: rooms } = await supabase
         .from('reservation_room')
         .select('room_number')

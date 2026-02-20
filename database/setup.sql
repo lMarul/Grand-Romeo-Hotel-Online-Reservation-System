@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS guests (
 CREATE TABLE IF NOT EXISTS rooms (
     room_number VARCHAR(10) PRIMARY KEY CHECK (LENGTH(TRIM(room_number)) > 0),
     room_type VARCHAR(20) NOT NULL CHECK (room_type IN ('Standard', 'Deluxe', 'Suite', 'Presidential')),
+    bed_type VARCHAR(20) NOT NULL DEFAULT 'Twin' CHECK (bed_type IN ('Single', 'Twin', 'Double', 'Queen', 'King')),
     capacity INT NOT NULL DEFAULT 1 CHECK (capacity >= 1 AND capacity <= 10),
     daily_rate DECIMAL(10,2) NOT NULL CHECK (daily_rate > 0),
     status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'Occupied', 'Reserved', 'Maintenance'))
@@ -84,7 +85,8 @@ CREATE TABLE IF NOT EXISTS reservations (
     check_in_time TIMESTAMPTZ,
     check_out_time TIMESTAMPTZ,
     total_guests INT NOT NULL DEFAULT 1 CHECK (total_guests >= 1 AND total_guests <= 20),
-    status VARCHAR(20) NOT NULL DEFAULT 'Reserved' CHECK (status IN ('Reserved', 'Checked-In', 'Checked-Out', 'Cancelled')),
+    special_requests TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'Reserved' CHECK (status IN ('Reserved', 'Checked-In', 'Checked-Out', 'Cancelled', 'No-Show')),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -159,22 +161,22 @@ SELECT setval('guests_guest_id_seq', 10, true);
 -- =====================================================
 
 -- ROOMS (15 rooms)
-INSERT INTO rooms (room_number, room_type, capacity, daily_rate, status) VALUES
-    ('101', 'Standard', 2, 2500.00, 'Available'),
-    ('102', 'Standard', 2, 2500.00, 'Reserved'),
-    ('103', 'Standard', 2, 2500.00, 'Available'),
-    ('104', 'Standard', 2, 2500.00, 'Available'),
-    ('105', 'Standard', 2, 2500.00, 'Available'),
-    ('201', 'Deluxe', 3, 4500.00, 'Available'),
-    ('202', 'Deluxe', 3, 4500.00, 'Available'),
-    ('203', 'Deluxe', 3, 4500.00, 'Reserved'),
-    ('204', 'Deluxe', 3, 4500.00, 'Available'),
-    ('205', 'Deluxe', 3, 4500.00, 'Available'),
-    ('301', 'Suite', 4, 8000.00, 'Occupied'),
-    ('302', 'Suite', 4, 8000.00, 'Available'),
-    ('303', 'Suite', 4, 8000.00, 'Available'),
-    ('401', 'Presidential', 6, 15000.00, 'Reserved'),
-    ('402', 'Presidential', 6, 15000.00, 'Reserved')
+INSERT INTO rooms (room_number, room_type, bed_type, capacity, daily_rate, status) VALUES
+    ('101', 'Standard', 'Twin', 2, 2500.00, 'Available'),
+    ('102', 'Standard', 'Double', 2, 2500.00, 'Reserved'),
+    ('103', 'Standard', 'Twin', 2, 2500.00, 'Available'),
+    ('104', 'Standard', 'Single', 1, 2500.00, 'Available'),
+    ('105', 'Standard', 'Double', 2, 2500.00, 'Available'),
+    ('201', 'Deluxe', 'Queen', 3, 4500.00, 'Available'),
+    ('202', 'Deluxe', 'Queen', 3, 4500.00, 'Available'),
+    ('203', 'Deluxe', 'King', 3, 4500.00, 'Reserved'),
+    ('204', 'Deluxe', 'Queen', 3, 4500.00, 'Available'),
+    ('205', 'Deluxe', 'King', 3, 4500.00, 'Available'),
+    ('301', 'Suite', 'King', 4, 8000.00, 'Occupied'),
+    ('302', 'Suite', 'King', 4, 8000.00, 'Available'),
+    ('303', 'Suite', 'King', 4, 8000.00, 'Available'),
+    ('401', 'Presidential', 'King', 6, 15000.00, 'Reserved'),
+    ('402', 'Presidential', 'King', 6, 15000.00, 'Reserved')
 ON CONFLICT (room_number) DO NOTHING;
 
 -- STAFF (Hotel employees - not portal users)
@@ -191,17 +193,20 @@ ON CONFLICT (staff_id) DO NOTHING;
 SELECT setval('staff_staff_id_seq', 7, true);
 
 -- RESERVATIONS
-INSERT INTO reservations (reservation_id, guest_id, check_in_date, check_out_date, total_guests, status) VALUES
-    (1, 1, '2026-02-15', '2026-02-17', 2, 'Reserved'),
-    (2, 2, '2026-02-16', '2026-02-20', 3, 'Reserved'),
-    (3, 3, '2026-02-10', '2026-02-12', 4, 'Checked-In'),
-    (4, 4, '2026-02-01', '2026-02-05', 2, 'Checked-Out'),
-    (5, 5, '2026-02-12', '2026-02-18', 6, 'Reserved'),
-    (6, 6, '2026-02-20', '2026-02-22', 2, 'Reserved'),
-    (7, 7, '2026-02-25', '2026-02-28', 3, 'Reserved')
+INSERT INTO reservations (reservation_id, guest_id, check_in_date, check_out_date, total_guests, special_requests, status) VALUES
+    (1, 1, '2026-02-15', '2026-02-17', 2, 'Late check-in after 10 PM. Non-smoking room preferred.', 'Reserved'),
+    (2, 2, '2026-02-16', '2026-02-20', 3, 'Extra bed for child. High floor preferred.', 'Reserved'),
+    (3, 3, '2026-02-10', '2026-02-12', 4, NULL, 'Checked-In'),
+    (4, 4, '2026-02-01', '2026-02-05', 2, 'Airport shuttle on arrival.', 'Checked-Out'),
+    (5, 5, '2026-02-12', '2026-02-18', 6, 'Connecting rooms please. Celebrating anniversary.', 'Reserved'),
+    (6, 6, '2026-02-20', '2026-02-22', 2, NULL, 'Reserved'),
+    (7, 7, '2026-02-25', '2026-02-28', 3, 'Early check-in if possible. Need baby crib.', 'Reserved'),
+    (8, 8, '2026-01-20', '2026-01-22', 2, NULL, 'No-Show'),
+    (9, 9, '2026-02-05', '2026-02-07', 1, 'Quiet room away from elevator.', 'Checked-Out'),
+    (10, 10, '2026-02-28', '2026-03-03', 2, 'Vegetarian meal options. Late checkout requested.', 'Reserved')
 ON CONFLICT (reservation_id) DO NOTHING;
 
-SELECT setval('reservations_reservation_id_seq', 7, true);
+SELECT setval('reservations_reservation_id_seq', 10, true);
 
 -- RESERVATION_ROOM (Which rooms are booked for each reservation)
 INSERT INTO reservation_room (reservation_id, room_number) VALUES
@@ -212,7 +217,10 @@ INSERT INTO reservation_room (reservation_id, room_number) VALUES
     (5, '401'),
     (5, '402'),
     (6, '103'),
-    (7, '204')
+    (7, '204'),
+    (8, '104'),
+    (9, '105'),
+    (10, '302')
 ON CONFLICT DO NOTHING;
 
 -- RESERVATION_STAFF (Which staff are assigned to each reservation)
@@ -224,7 +232,10 @@ INSERT INTO reservation_staff (reservation_id, staff_id) VALUES
     (5, 3),
     (5, 4),
     (6, 2),
-    (7, 3)
+    (7, 3),
+    (8, 2),
+    (9, 3),
+    (10, 2)
 ON CONFLICT DO NOTHING;
 
 -- PAYMENTS
@@ -232,10 +243,12 @@ INSERT INTO payments (payment_id, reservation_id, payment_date, amount_paid, pay
     (1, 3, '2026-02-10', 16000.00, 'Credit Card', 'TXN001'),
     (2, 4, '2026-02-01', 9000.00, 'Cash', 'TXN002'),
     (3, 4, '2026-02-03', 9000.00, 'Cash', 'TXN003'),
-    (4, 5, '2026-02-12', 90000.00, 'Bank Transfer', 'TXN004')
+    (4, 5, '2026-02-12', 90000.00, 'Bank Transfer', 'TXN004'),
+    (5, 9, '2026-02-05', 5000.00, 'E-Wallet', 'TXN005'),
+    (6, 10, '2026-02-27', 8000.00, 'Credit Card', 'TXN006')
 ON CONFLICT (payment_id) DO NOTHING;
 
-SELECT setval('payments_payment_id_seq', 4, true);
+SELECT setval('payments_payment_id_seq', 6, true);
 
 
 -- ============================================================

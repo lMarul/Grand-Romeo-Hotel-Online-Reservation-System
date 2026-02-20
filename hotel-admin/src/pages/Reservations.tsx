@@ -32,9 +32,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Eye, LogIn, LogOut, Loader2, X, Trash2, Edit } from 'lucide-react';
+import { Plus, Search, Eye, LogIn, LogOut, Loader2, X, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Textarea } from '@/components/ui/textarea';
 
 const statusStyles: Record<ReservationStatus, string> = {
   'Reserved': 'bg-info/10 text-info border-info/30',
@@ -65,6 +66,7 @@ export default function ReservationsPage() {
     check_in_date: '',
     check_out_date: '',
     total_guests: 1,
+    special_requests: '',
     room_numbers: [] as string[],
     staff_ids: [] as number[],
   });
@@ -74,6 +76,7 @@ export default function ReservationsPage() {
     check_in_date: '',
     check_out_date: '',
     total_guests: 1,
+    special_requests: '',
     room_numbers: [] as string[],
     staff_ids: [] as number[],
   });
@@ -125,6 +128,7 @@ export default function ReservationsPage() {
           check_in_date: formData.check_in_date,
           check_out_date: formData.check_out_date,
           total_guests: formData.total_guests,
+          special_requests: formData.special_requests || null,
           status: 'Reserved',
         },
         formData.room_numbers,
@@ -132,7 +136,7 @@ export default function ReservationsPage() {
       );
       toast({ title: 'Success', description: 'Reservation created' });
       setIsAddDialogOpen(false);
-      setFormData({ guest_id: '', check_in_date: '', check_out_date: '', total_guests: 1, room_numbers: [], staff_ids: [] });
+      setFormData({ guest_id: '', check_in_date: '', check_out_date: '', total_guests: 1, special_requests: '', room_numbers: [], staff_ids: [] });
       loadData();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -168,6 +172,7 @@ export default function ReservationsPage() {
       check_in_date: reservation.check_in_date,
       check_out_date: reservation.check_out_date,
       total_guests: reservation.total_guests,
+      special_requests: reservation.special_requests || '',
       room_numbers: reservation.rooms?.map((r) => r.room_number) || [],
       staff_ids: reservation.staff?.map((s) => s.staff_id) || [],
     });
@@ -189,6 +194,7 @@ export default function ReservationsPage() {
           check_in_date: editFormData.check_in_date,
           check_out_date: editFormData.check_out_date,
           total_guests: editFormData.total_guests,
+          special_requests: editFormData.special_requests || null,
         },
         editFormData.room_numbers,
         editFormData.staff_ids
@@ -300,6 +306,10 @@ export default function ReservationsPage() {
               <div className="space-y-2">
                 <Label>Number of Guests</Label>
                 <Input type="number" min="1" value={formData.total_guests} onChange={(e) => setFormData({ ...formData, total_guests: parseInt(e.target.value) || 1 })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Special Requests (optional)</Label>
+                <Textarea placeholder="e.g. Non-smoking room, extra bed, late check-in..." value={formData.special_requests} onChange={(e) => setFormData({ ...formData, special_requests: e.target.value })} rows={3} />
               </div>
               <div className="space-y-2">
                 <Label>Rooms (click to select)</Label>
@@ -436,6 +446,11 @@ export default function ReservationsPage() {
                         <X className="w-4 h-4" />
                       </Button>
                     )}
+                    {(isAdmin || isStaffRole) && reservation.status === 'Reserved' && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-warning hover:text-warning" title="Mark as No-Show" onClick={() => handleStatusChange(reservation.reservation_id, 'No-Show')}>
+                        <AlertTriangle className="w-4 h-4" />
+                      </Button>
+                    )}
                     {isAdmin && (
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(reservation.reservation_id)}>
                         <Trash2 className="w-4 h-4" />
@@ -498,6 +513,12 @@ export default function ReservationsPage() {
                 <p className="text-sm text-muted-foreground">Total Guests</p>
                 <p>{selectedReservation.total_guests}</p>
               </div>
+              {selectedReservation.special_requests && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Special Requests</p>
+                  <p className="text-sm bg-secondary/30 p-2 rounded-md mt-1">{selectedReservation.special_requests}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Room(s)</p>
                 <div className="flex flex-wrap gap-2">
@@ -560,6 +581,10 @@ export default function ReservationsPage() {
               <div className="space-y-2">
                 <Label>Number of Guests</Label>
                 <Input type="number" min="1" value={editFormData.total_guests} onChange={(e) => setEditFormData({ ...editFormData, total_guests: parseInt(e.target.value) || 1 })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Special Requests (optional)</Label>
+                <Textarea placeholder="e.g. Non-smoking room, extra bed, late check-in..." value={editFormData.special_requests} onChange={(e) => setEditFormData({ ...editFormData, special_requests: e.target.value })} rows={3} />
               </div>
               <div className="space-y-2">
                 <Label>Rooms (click to select)</Label>

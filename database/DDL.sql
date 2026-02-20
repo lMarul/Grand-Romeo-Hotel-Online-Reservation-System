@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS guests (
 CREATE TABLE IF NOT EXISTS rooms (
     room_number VARCHAR(10) PRIMARY KEY CHECK (LENGTH(TRIM(room_number)) > 0),
     room_type VARCHAR(20) NOT NULL CHECK (room_type IN ('Standard', 'Deluxe', 'Suite', 'Presidential')),
+    bed_type VARCHAR(20) NOT NULL DEFAULT 'Twin' CHECK (bed_type IN ('Single', 'Twin', 'Double', 'Queen', 'King')),
     capacity INT NOT NULL DEFAULT 1 CHECK (capacity >= 1 AND capacity <= 10),
     daily_rate DECIMAL(10,2) NOT NULL CHECK (daily_rate > 0),
     status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'Occupied', 'Reserved', 'Maintenance'))
@@ -87,7 +88,8 @@ CREATE TABLE IF NOT EXISTS reservations (
     check_in_time TIMESTAMPTZ,
     check_out_time TIMESTAMPTZ,
     total_guests INT NOT NULL DEFAULT 1 CHECK (total_guests >= 1 AND total_guests <= 20),
-    status VARCHAR(20) NOT NULL DEFAULT 'Reserved' CHECK (status IN ('Reserved', 'Checked-In', 'Checked-Out', 'Cancelled')),
+    special_requests TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'Reserved' CHECK (status IN ('Reserved', 'Checked-In', 'Checked-Out', 'Cancelled', 'No-Show')),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -39,6 +39,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 import { roomService, reservationService } from '@/lib/database';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Room, Reservation } from '@/types/hotel';
@@ -74,6 +75,12 @@ const statusConfig: Record<
     color: 'bg-red-500/10 text-red-600 border-red-500/20',
     bgColor: 'from-red-500/5 to-red-600/5 border-red-500/20',
   },
+  'No-Show': {
+    label: 'No-Show',
+    icon: XCircle,
+    color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    bgColor: 'from-amber-500/5 to-amber-600/5 border-amber-500/20',
+  },
 };
 
 export default function MyReservations() {
@@ -95,6 +102,7 @@ export default function MyReservations() {
     checkInDate: '',
     checkOutDate: '',
     totalGuests: 1,
+    specialRequests: '',
     selectedRoom: '',
     selectedRoomType: 'all',
   });
@@ -178,6 +186,7 @@ export default function MyReservations() {
           check_in_date: formData.checkInDate,
           check_out_date: formData.checkOutDate,
           total_guests: formData.totalGuests,
+          special_requests: formData.specialRequests || null,
           status: 'Reserved',
         },
         [formData.selectedRoom],
@@ -190,6 +199,7 @@ export default function MyReservations() {
         checkInDate: '',
         checkOutDate: '',
         totalGuests: 1,
+        specialRequests: '',
         selectedRoom: '',
         selectedRoomType: 'all',
       });
@@ -370,6 +380,23 @@ export default function MyReservations() {
                       })
                     }
                     className="h-10"
+                  />
+                </div>
+
+                {/* Special Requests */}
+                <div className="space-y-2">
+                  <Label htmlFor="specialRequests">Special Requests (optional)</Label>
+                  <Textarea
+                    id="specialRequests"
+                    placeholder="e.g. Non-smoking room, extra bed, late check-in, airport transfer..."
+                    value={formData.specialRequests}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        specialRequests: e.target.value,
+                      })
+                    }
+                    rows={3}
                   />
                 </div>
 
@@ -932,6 +959,14 @@ export default function MyReservations() {
                     </div>
                   )}
                 </div>
+
+                {/* Special Requests */}
+                {selectedReservation.special_requests && (
+                  <div className="pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Special Requests</p>
+                    <p className="text-sm bg-secondary/30 p-2 rounded-md">{selectedReservation.special_requests}</p>
+                  </div>
+                )}
 
                 {/* Room Amenities Preview */}
                 {selectedReservation.rooms?.[0]?.room && (

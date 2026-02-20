@@ -127,6 +127,7 @@ export interface Database {
         Row: {
           room_number: string;
           room_type: string;
+          bed_type: string;
           capacity: number;
           daily_rate: number;
           status: string;
@@ -134,6 +135,7 @@ export interface Database {
         Insert: {
           room_number: string;
           room_type: string;
+          bed_type?: string;
           capacity?: number;
           daily_rate: number;
           status?: string;
@@ -141,6 +143,7 @@ export interface Database {
         Update: {
           room_number?: string;
           room_type?: string;
+          bed_type?: string;
           capacity?: number;
           daily_rate?: number;
           status?: string;
@@ -178,6 +181,7 @@ export interface Database {
           check_in_time: string | null;
           check_out_time: string | null;
           total_guests: number;
+          special_requests: string | null;
           status: string;
           created_at: string;
         };
@@ -189,6 +193,7 @@ export interface Database {
           check_in_time?: string | null;
           check_out_time?: string | null;
           total_guests?: number;
+          special_requests?: string | null;
           status?: string;
           created_at?: string;
         };
@@ -200,6 +205,7 @@ export interface Database {
           check_in_time?: string | null;
           check_out_time?: string | null;
           total_guests?: number;
+          special_requests?: string | null;
           status?: string;
           created_at?: string;
         };

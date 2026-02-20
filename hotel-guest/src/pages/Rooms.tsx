@@ -272,7 +272,7 @@ export default function RoomsPage() {
                               <CardDescription className="flex items-center gap-1.5 mt-1">
                                 <BedDouble className="w-3.5 h-3.5" />
                                 {room.room_type}
-                                {type === 'Presidential' ? ' Suite' : ' Room'}
+                                {type === 'Presidential' ? ' Suite' : ' Room'} • {room.bed_type} Bed
                               </CardDescription>
                             </div>
                             <Badge

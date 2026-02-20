@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { roomService } from '@/lib/database';
-import { Room, RoomStatus, RoomType } from '@/types/hotel';
+import { Room, RoomStatus, RoomType, BedType } from '@/types/hotel';
 import { cn } from '@/lib/utils';
 import {
   Card,
@@ -54,6 +54,7 @@ export default function RoomsPage() {
   const [formData, setFormData] = useState({
     room_number: '',
     room_type: 'Standard' as RoomType,
+    bed_type: 'Twin' as BedType,
     capacity: 2,
     daily_rate: 2500,
     status: 'Available' as RoomStatus,
@@ -89,7 +90,7 @@ export default function RoomsPage() {
       await roomService.create(formData);
       toast({ title: 'Success', description: 'Room added successfully' });
       setIsAddDialogOpen(false);
-      setFormData({ room_number: '', room_type: 'Standard', capacity: 2, daily_rate: 2500, status: 'Available' });
+      setFormData({ room_number: '', room_type: 'Standard', bed_type: 'Twin', capacity: 2, daily_rate: 2500, status: 'Available' });
       loadRooms();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -179,6 +180,19 @@ export default function RoomsPage() {
                   </Select>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Bed Type</Label>
+                <Select value={formData.bed_type} onValueChange={(val) => setFormData({ ...formData, bed_type: val as BedType })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Single">Single</SelectItem>
+                    <SelectItem value="Twin">Twin</SelectItem>
+                    <SelectItem value="Double">Double</SelectItem>
+                    <SelectItem value="Queen">Queen</SelectItem>
+                    <SelectItem value="King">King</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Capacity</Label>
@@ -220,7 +234,7 @@ export default function RoomsPage() {
                   <CardTitle className="font-display text-2xl">Room {room.room_number}</CardTitle>
                   <CardDescription className="flex items-center gap-1 mt-1">
                     <Bed className="w-3 h-3" />
-                    {room.room_type}
+                    {room.room_type} • {room.bed_type} Bed
                   </CardDescription>
                 </div>
                 <Badge variant="outline" className={cn("border", statusStyles[room.status])}>

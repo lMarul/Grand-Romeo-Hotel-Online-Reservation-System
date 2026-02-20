@@ -76,7 +76,7 @@ export const guestService = {
 };
 
 // =====================
-// ROOMS (Front Desk: read + update status, no create/delete)
+// ROOMS (Front Desk: full management)
 // =====================
 export const roomService = {
   async getAll(): Promise<Room[]> {
@@ -108,6 +108,16 @@ export const roomService = {
     return data as Room[];
   },
 
+  async create(room: Room): Promise<Room> {
+    const { data, error } = await supabase
+      .from('rooms')
+      .insert(room)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Room;
+  },
+
   async update(roomNumber: string, updates: Partial<Room>): Promise<Room> {
     const { data, error } = await supabase
       .from('rooms')
@@ -117,6 +127,14 @@ export const roomService = {
       .single();
     if (error) throw error;
     return data as Room;
+  },
+
+  async delete(roomNumber: string): Promise<void> {
+    const { error } = await supabase
+      .from('rooms')
+      .delete()
+      .eq('room_number', roomNumber);
+    if (error) throw error;
   },
 };
 
@@ -200,6 +218,7 @@ export const reservationService = {
       check_in_date: string;
       check_out_date: string;
       total_guests: number;
+      special_requests?: string | null;
       status?: string;
     },
     roomNumbers: string[],
@@ -257,6 +276,7 @@ export const reservationService = {
       check_in_date?: string;
       check_out_date?: string;
       total_guests?: number;
+      special_requests?: string | null;
     },
     roomNumbers?: string[],
     staffIds?: number[]
@@ -375,6 +395,22 @@ export const reservationService = {
 
     if (status === 'Cancelled') {
       // Free up rooms
+      const { data: rooms } = await supabase
+        .from('reservation_room')
+        .select('room_number')
+        .eq('reservation_id', id);
+      if (rooms) {
+        for (const r of rooms) {
+          await supabase
+            .from('rooms')
+            .update({ status: 'Available' })
+            .eq('room_number', r.room_number);
+        }
+      }
+    }
+
+    if (status === 'No-Show') {
+      // Free up rooms for no-show guests
       const { data: rooms } = await supabase
         .from('reservation_room')
         .select('room_number')
