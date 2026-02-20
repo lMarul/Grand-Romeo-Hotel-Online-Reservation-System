@@ -13,6 +13,12 @@ export default function Register() {
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [stateProvince, setStateProvince] = useState('');
+  const [zipCode, setZipCode] = useState('');
+  const [country, setCountry] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
@@ -40,7 +46,19 @@ export default function Register() {
     }
 
     setLoading(true);
-    const { error } = await signUp(username, password, email, firstName, lastName);
+    const { error } = await signUp(
+      username, 
+      password, 
+      email, 
+      firstName, 
+      lastName,
+      contactNumber || undefined,
+      street || undefined,
+      city || undefined,
+      stateProvince || undefined,
+      zipCode || undefined,
+      country || undefined
+    );
     
     if (error) {
       setError(error.message);
@@ -163,6 +181,66 @@ export default function Register() {
                 required
                 className="h-11"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactNumber">Contact Number</Label>
+              <Input
+                id="contactNumber"
+                type="tel"
+                placeholder="+63 912 345 6789"
+                value={contactNumber}
+                onChange={(e) => setContactNumber(e.target.value)}
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Address (Optional)</Label>
+              
+              <div className="space-y-2">
+                <Input
+                  id="street"
+                  placeholder="Street Address"
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  id="city"
+                  placeholder="City"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="h-11"
+                />
+                <Input
+                  id="stateProvince"
+                  placeholder="State/Province"
+                  value={stateProvince}
+                  onChange={(e) => setStateProvince(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  id="zipCode"
+                  placeholder="ZIP Code"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  className="h-11"
+                />
+                <Input
+                  id="country"
+                  placeholder="Country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="h-11"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

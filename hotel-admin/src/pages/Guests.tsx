@@ -38,6 +38,9 @@ export default function GuestsPage() {
 
   // Form state
   const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    email: '',
     first_name: '',
     last_name: '',
     contact_number: '',
@@ -69,17 +72,24 @@ export default function GuestsPage() {
   );
 
   const resetForm = () => {
-    setFormData({ first_name: '', last_name: '', contact_number: '', street: '', city: '', state_province: '', zip_code: '', country: '' });
+    setFormData({ username: '', password: '', email: '', first_name: '', last_name: '', contact_number: '', street: '', city: '', state_province: '', zip_code: '', country: '' });
   };
 
   const handleAddGuest = async () => {
-    if (!formData.first_name || !formData.last_name) {
-      toast({ title: 'Error', description: 'First and last name are required', variant: 'destructive' });
+    if (!formData.username || !formData.password || !formData.email || !formData.first_name || !formData.last_name) {
+      toast({ title: 'Error', description: 'Username, password, email, first and last name are required', variant: 'destructive' });
+      return;
+    }
+    if (formData.password.length < 6) {
+      toast({ title: 'Error', description: 'Password must be at least 6 characters', variant: 'destructive' });
       return;
     }
     setSaving(true);
     try {
       await guestService.create({
+        username: formData.username,
+        password: formData.password,
+        email: formData.email,
         first_name: formData.first_name,
         last_name: formData.last_name,
         contact_number: formData.contact_number || null,
@@ -169,8 +179,18 @@ export default function GuestsPage() {
               <DialogTitle className="font-display text-xl">Add New Guest</DialogTitle>
               <DialogDescription>Enter the guest's personal information below.</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 py-4">              <div className="space-y-2">
+                <Label htmlFor="username">Username *</Label>
+                <Input id="username" placeholder="username" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input id="email" type="email" placeholder="guest@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password *</Label>
+                <Input id="password" type="password" placeholder="Min 6 characters" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+              </div>              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input id="firstName" placeholder="Juan" value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} />

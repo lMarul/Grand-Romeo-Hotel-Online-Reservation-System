@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { roomService } from '@/lib/database';
-import { Room, RoomStatus, RoomType, BedType } from '@/types/hotel';
+import { Room, RoomStatus, RoomType } from '@/types/hotel';
 import { cn } from '@/lib/utils';
 import {
   Card,
@@ -20,19 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Plus, Search, Users, Bed, Loader2 } from 'lucide-react';
+import { Search, Users, Bed, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 
 const statusStyles: Record<RoomStatus, string> = {
   'Available': 'bg-success/10 text-success border-success/30',
@@ -46,19 +35,8 @@ export default function RoomsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-
-  const [formData, setFormData] = useState({
-    room_number: '',
-    room_type: 'Standard' as RoomType,
-    bed_type: 'Twin' as BedType,
-    capacity: 2,
-    daily_rate: 2500,
-    status: 'Available' as RoomStatus,
-  });
 
   const loadRooms = async () => {
     try {
@@ -80,39 +58,10 @@ export default function RoomsPage() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const handleAddRoom = async () => {
-    if (!formData.room_number) {
-      toast({ title: 'Error', description: 'Room number is required', variant: 'destructive' });
-      return;
-    }
-    setSaving(true);
-    try {
-      await roomService.create(formData);
-      toast({ title: 'Success', description: 'Room added successfully' });
-      setIsAddDialogOpen(false);
-      setFormData({ room_number: '', room_type: 'Standard', bed_type: 'Twin', capacity: 2, daily_rate: 2500, status: 'Available' });
-      loadRooms();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleUpdateStatus = async (roomNumber: string, status: RoomStatus) => {
     try {
       await roomService.update(roomNumber, { status });
       toast({ title: 'Success', description: `Room ${roomNumber} set to ${status}` });
-      loadRooms();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    }
-  };
-
-  const handleDeleteRoom = async (roomNumber: string) => {
-    try {
-      await roomService.delete(roomNumber);
-      toast({ title: 'Success', description: `Room ${roomNumber} deleted` });
       loadRooms();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -149,69 +98,6 @@ export default function RoomsPage() {
             </SelectContent>
           </Select>
         </div>
-
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold">
-              <Plus className="w-4 h-4 mr-2" />Add Room
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle className="font-display text-xl">Add New Room</DialogTitle>
-              <DialogDescription>Enter the room details below.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Room Number</Label>
-                  <Input placeholder="101" value={formData.room_number} onChange={(e) => setFormData({ ...formData, room_number: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Room Type</Label>
-                  <Select value={formData.room_type} onValueChange={(val) => setFormData({ ...formData, room_type: val as RoomType })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Deluxe">Deluxe</SelectItem>
-                      <SelectItem value="Suite">Suite</SelectItem>
-                      <SelectItem value="Presidential">Presidential</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Bed Type</Label>
-                <Select value={formData.bed_type} onValueChange={(val) => setFormData({ ...formData, bed_type: val as BedType })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Single">Single</SelectItem>
-                    <SelectItem value="Twin">Twin</SelectItem>
-                    <SelectItem value="Double">Double</SelectItem>
-                    <SelectItem value="Queen">Queen</SelectItem>
-                    <SelectItem value="King">King</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Capacity</Label>
-                  <Input type="number" min="1" value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 1 })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Daily Rate (₱)</Label>
-                  <Input type="number" min="0" value={formData.daily_rate} onChange={(e) => setFormData({ ...formData, daily_rate: parseFloat(e.target.value) || 0 })} />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-              <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground" onClick={handleAddRoom} disabled={saving}>
-                {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding...</> : 'Add Room'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Room Cards Grid */}
@@ -266,9 +152,6 @@ export default function RoomsPage() {
                         Set Available
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteRoom(room.room_number)}>
-                      Delete
-                    </Button>
                   </div>
               </div>
             </CardContent>

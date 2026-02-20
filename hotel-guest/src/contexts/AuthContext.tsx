@@ -24,7 +24,19 @@ interface AuthContextType {
   role: UserRole;
   loading: boolean;
   signIn: (username: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (username: string, password: string, email: string, firstName: string, lastName: string) => Promise<{ error: Error | null }>;
+  signUp: (
+    username: string,
+    password: string,
+    email: string,
+    firstName: string,
+    lastName: string,
+    contactNumber?: string,
+    street?: string,
+    city?: string,
+    stateProvince?: string,
+    zipCode?: string,
+    country?: string
+  ) => Promise<{ error: Error | null }>;
   signOut: () => void;
   isGuest: boolean;
   isAuthenticated: boolean;
@@ -78,12 +90,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (
-    username: string, 
-    password: string, 
-    email: string, 
-    firstName: string, 
-    lastName: string
-  ): Promise<{ error: Error | null }> => {
+    username: string,
+    password: string,
+    email: string,
+    firstName: string,
+    lastName: string,
+    contactNumber?: string,
+    street?: string,
+    city?: string,
+    stateProvince?: string,
+    zipCode?: string,
+    country?: string
+  ): Promise<{ error: Error | null }> {
     try {
       // Insert new guest into the database
       const { data, error } = await supabase
@@ -94,6 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email,
           first_name: firstName,
           last_name: lastName,
+          contact_number: contactNumber || null,
+          street: street || null,
+          city: city || null,
+          state_province: stateProvince || null,
+          zip_code: zipCode || null,
+          country: country || null,
         })
         .select()
         .single();
