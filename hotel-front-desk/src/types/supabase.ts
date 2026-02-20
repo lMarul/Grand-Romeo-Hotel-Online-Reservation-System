@@ -210,12 +210,6 @@ export interface Database {
           created_at?: string;
         };
       };
-          check_out_time?: string | null;
-          total_guests?: number;
-          status?: string;
-          created_at?: string;
-        };
-      };
       reservation_room: {
         Row: {
           reservation_id: number;

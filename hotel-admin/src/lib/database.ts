@@ -40,7 +40,7 @@ export const guestService = {
   async create(guest: Omit<Guest, 'guest_id'>): Promise<Guest> {
     const { data, error } = await supabase
       .from('guests')
-      .insert(guest)
+      .insert(guest as any)
       .select()
       .single();
     if (error) throw error;
@@ -113,7 +113,7 @@ export const roomService = {
   async create(room: Room): Promise<Room> {
     const { data, error } = await supabase
       .from('rooms')
-      .insert(room)
+      .insert(room as any)
       .select()
       .single();
     if (error) throw error;
@@ -166,7 +166,7 @@ export const staffService = {
   async create(staff: Omit<Staff, 'staff_id'>): Promise<Staff> {
     const { data, error } = await supabase
       .from('staff')
-      .insert(staff)
+      .insert(staff as any)
       .select()
       .single();
     if (error) throw error;
@@ -258,7 +258,7 @@ export const reservationService = {
     // Insert reservation
     const { data: res, error: resError } = await supabase
       .from('reservations')
-      .insert(reservation)
+      .insert(reservation as any)
       .select()
       .single();
     if (resError) throw resError;
@@ -273,7 +273,7 @@ export const reservationService = {
       }));
       const { error: roomError } = await supabase
         .from('reservation_room')
-        .insert(roomInserts);
+        .insert(roomInserts as any);
       if (roomError) throw roomError;
 
       // Update room status to Reserved
@@ -293,7 +293,7 @@ export const reservationService = {
       }));
       const { error: staffError } = await supabase
         .from('reservation_staff')
-        .insert(staffInserts);
+        .insert(staffInserts as any);
       if (staffError) throw staffError;
     }
 
@@ -350,7 +350,7 @@ export const reservationService = {
         }));
         const { error: roomError } = await supabase
           .from('reservation_room')
-          .insert(roomInserts);
+          .insert(roomInserts as any);
         if (roomError) throw roomError;
 
         // Update new room status to Reserved
@@ -379,7 +379,7 @@ export const reservationService = {
         }));
         const { error: staffError } = await supabase
           .from('reservation_staff')
-          .insert(staffInserts);
+          .insert(staffInserts as any);
         if (staffError) throw staffError;
       }
     }
@@ -518,7 +518,7 @@ export const paymentService = {
   async create(payment: Omit<Payment, 'payment_id' | 'reservation'>): Promise<Payment> {
     const { data, error } = await supabase
       .from('payments')
-      .insert(payment)
+      .insert(payment as any)
       .select()
       .single();
     if (error) throw error;

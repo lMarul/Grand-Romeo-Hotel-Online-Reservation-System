@@ -95,7 +95,7 @@ export const reservationService = {
     // Insert reservation
     const { data: res, error: resError } = await supabase
       .from('reservations')
-      .insert(reservation)
+      .insert(reservation as any)
       .select()
       .single();
     if (resError) throw resError;
@@ -110,7 +110,7 @@ export const reservationService = {
       }));
       const { error: roomError } = await supabase
         .from('reservation_room')
-        .insert(roomInserts);
+        .insert(roomInserts as any);
       if (roomError) throw roomError;
 
       // Update room status to Reserved
