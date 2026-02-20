@@ -18,7 +18,13 @@
 CREATE TABLE IF NOT EXISTS admins (
     admin_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL CHECK (
+        LENGTH(password) >= 6 AND
+        password ~ '[A-Z]' AND
+        password ~ '[a-z]' AND
+        password ~ '[0-9]' AND
+        password ~ '[!@#$%^&*(),.?":{}|<>]'
+    ),
     email TEXT NOT NULL UNIQUE CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
     first_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(first_name)) >= 2),
     last_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(last_name)) >= 2),
@@ -30,7 +36,13 @@ CREATE TABLE IF NOT EXISTS admins (
 CREATE TABLE IF NOT EXISTS front_desk (
     front_desk_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL CHECK (
+        LENGTH(password) >= 6 AND
+        password ~ '[A-Z]' AND
+        password ~ '[a-z]' AND
+        password ~ '[0-9]' AND
+        password ~ '[!@#$%^&*(),.?":{}|<>]'
+    ),
     email TEXT NOT NULL UNIQUE CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
     first_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(first_name)) >= 2),
     last_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(last_name)) >= 2),
@@ -42,7 +54,13 @@ CREATE TABLE IF NOT EXISTS front_desk (
 CREATE TABLE IF NOT EXISTS guests (
     guest_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL CHECK (
+        LENGTH(password) >= 6 AND
+        password ~ '[A-Z]' AND
+        password ~ '[a-z]' AND
+        password ~ '[0-9]' AND
+        password ~ '[!@#$%^&*(),.?":{}|<>]'
+    ),
     email TEXT NOT NULL UNIQUE CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
     first_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(first_name)) >= 2),
     last_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(last_name)) >= 2),
