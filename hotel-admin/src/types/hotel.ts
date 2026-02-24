@@ -9,7 +9,7 @@ export type UserRole = 'admin' | 'staff' | 'user';
 
 // Admin Portal Users
 export interface Admin {
-  admin_id: number;
+  admin_id: string; // Format: A001, A002, A003, ...
   username: string;
   password?: string; // Not returned in queries for security
   email: string;
@@ -21,7 +21,7 @@ export interface Admin {
 
 // Front Desk Portal Users
 export interface FrontDesk {
-  front_desk_id: number;
+  front_desk_id: string; // Format: FD001, FD002, FD003, ...
   username: string;
   password?: string;
   email: string;
@@ -33,7 +33,7 @@ export interface FrontDesk {
 
 // Guest Portal Users (also used for reservations)
 export interface Guest {
-  guest_id: number;
+  guest_id: string; // Format: G001, G002, G003, ...
   username: string;
   password?: string;
   email: string;
@@ -95,7 +95,7 @@ export type RoomStatus = 'Available' | 'Occupied' | 'Maintenance' | 'Reserved';
 
 // Hotel Employees (NOT portal users - just employee records)
 export interface Staff {
-  staff_id: number;
+  staff_id: string; // Format: S001, S002, S003, ...
   first_name: string;
   last_name: string;
   role: StaffRole;
@@ -108,8 +108,8 @@ export type StaffRole = 'Manager' | 'Receptionist' | 'Housekeeping' | 'Concierge
 // RESERVATIONS TABLE
 // =====================
 export interface Reservation {
-  reservation_id: number;
-  guest_id: number;
+  reservation_id: string; // Format: R001, R002, R003, ...
+  guest_id: string; // Format: G001, G002, G003, ...
   check_in_date: string;
   check_out_date: string;
   check_in_time: string | null;
@@ -118,8 +118,8 @@ export interface Reservation {
   special_requests: string | null;
   status: ReservationStatus;
   is_walk_in: boolean;
-  created_by_admin_id: number | null;
-  created_by_front_desk_id: number | null;
+  created_by_admin_id: string | null; // Format: A001, A002, A003, ...
+  created_by_front_desk_id: string | null; // Format: FD001, FD002, FD003, ...
   created_at: string;
   updated_at: string | null;
   updated_by: string | null;
@@ -136,7 +136,7 @@ export type ReservationStatus = 'Pending Payment' | 'Confirmed' | 'Reserved' | '
 // =====================
 // PDF: ReservationID, RoomNumber (Composite PK)
 export interface ReservationRoom {
-  reservation_id: number;
+  reservation_id: string; // Format: R001, R002, R003, ...
   room_number: string;
   room?: Room;
 }
@@ -146,8 +146,8 @@ export interface ReservationRoom {
 // =====================
 // PDF: ReservationID, StaffID (Composite PK)
 export interface ReservationStaff {
-  reservation_id: number;
-  staff_id: number;
+  reservation_id: string; // Format: R001, R002, R003, ...
+  staff_id: string; // Format: S001, S002, S003, ...
   staff?: Staff;
 }
 
@@ -157,8 +157,8 @@ export interface ReservationStaff {
 // PDF: PaymentID, ReservationID, PaymentDate, AmountPaid,
 //      PaymentMethod, TransactionID
 export interface Payment {
-  payment_id: number;
-  reservation_id: number;
+  payment_id: string; // Format: P001, P002, P003, ...
+  reservation_id: string; // Format: R001, R002, R003, ...
   payment_date: string;
   amount_paid: number;
   payment_method: PaymentMethod;

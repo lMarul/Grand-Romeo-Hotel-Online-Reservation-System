@@ -2,24 +2,112 @@
 -- HOTEL RESERVATION SYSTEM - DDL (Data Definition Language)
 -- Grand Romeo Hotel - DATAMA2 Finals (Database Management)
 -- ============================================================
--- This file contains all CREATE TABLE statements
+-- This file contains all CREATE TABLE statements with FORMATTED IDs
 -- Run this in your Supabase SQL Editor to set up the database schema
 -- 
--- All authentication is handled via database tables with
--- username and password fields. No external auth dependencies.
+-- ID FORMAT:
+--   Admins:       A001, A002, A003, ...
+--   Front Desk:   FD001, FD002, FD003, ...
+--   Guests:       G001, G002, G003, ...
+--   Staff:        S001, S002, S003, ...
+--   Reservations: R001, R002, R003, ...
+--   Payments:     P001, P002, P003, ...
 -- ============================================================
 
 
 -- =====================================================
--- PART 1: USER ACCOUNT TABLES
+-- PART 1: CREATE SEQUENCES FOR ID GENERATION
+-- =====================================================
+
+CREATE SEQUENCE IF NOT EXISTS admins_id_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS front_desk_id_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS guests_id_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS staff_id_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS reservations_id_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS payments_id_seq START 1;
+
+
+-- =====================================================
+-- PART 2: CREATE HELPER FUNCTIONS
+-- =====================================================
+
+-- Function to generate formatted admin IDs
+CREATE OR REPLACE FUNCTION generate_admin_id()
+RETURNS TEXT AS $$
+DECLARE
+    next_id INTEGER;
+BEGIN
+    next_id := nextval('admins_id_seq');
+    RETURN 'A' || LPAD(next_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate formatted front desk IDs
+CREATE OR REPLACE FUNCTION generate_front_desk_id()
+RETURNS TEXT AS $$
+DECLARE
+    next_id INTEGER;
+BEGIN
+    next_id := nextval('front_desk_id_seq');
+    RETURN 'FD' || LPAD(next_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate formatted guest IDs
+CREATE OR REPLACE FUNCTION generate_guest_id()
+RETURNS TEXT AS $$
+DECLARE
+    next_id INTEGER;
+BEGIN
+    next_id := nextval('guests_id_seq');
+    RETURN 'G' || LPAD(next_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate formatted staff IDs
+CREATE OR REPLACE FUNCTION generate_staff_id()
+RETURNS TEXT AS $$
+DECLARE
+    next_id INTEGER;
+BEGIN
+    next_id := nextval('staff_id_seq');
+    RETURN 'S' || LPAD(next_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate formatted reservation IDs
+CREATE OR REPLACE FUNCTION generate_reservation_id()
+RETURNS TEXT AS $$
+DECLARE
+    next_id INTEGER;
+BEGIN
+    next_id := nextval('reservations_id_seq');
+    RETURN 'R' || LPAD(next_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate formatted payment IDs
+CREATE OR REPLACE FUNCTION generate_payment_id()
+RETURNS TEXT AS $$
+DECLARE
+    next_id INTEGER;
+BEGIN
+    next_id := nextval('payments_id_seq');
+    RETURN 'P' || LPAD(next_id::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- =====================================================
+-- PART 3: USER ACCOUNT TABLES
 -- =====================================================
 
 -- ADMINS TABLE (System Administrators)
 CREATE TABLE IF NOT EXISTS admins (
-    admin_id SERIAL PRIMARY KEY,
+    admin_id VARCHAR(10) PRIMARY KEY DEFAULT generate_admin_id(),
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL CHECK (
-        LENGTH(password) >= 6 AND
+        LENGTH(password) >= 8 AND
         password ~ '[A-Z]' AND
         password ~ '[a-z]' AND
         password ~ '[0-9]' AND
@@ -34,10 +122,10 @@ CREATE TABLE IF NOT EXISTS admins (
 
 -- FRONT_DESK TABLE (Front Desk Portal Users)
 CREATE TABLE IF NOT EXISTS front_desk (
-    front_desk_id SERIAL PRIMARY KEY,
+    front_desk_id VARCHAR(10) PRIMARY KEY DEFAULT generate_front_desk_id(),
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL CHECK (
-        LENGTH(password) >= 6 AND
+        LENGTH(password) >= 8 AND
         password ~ '[A-Z]' AND
         password ~ '[a-z]' AND
         password ~ '[0-9]' AND
@@ -52,10 +140,10 @@ CREATE TABLE IF NOT EXISTS front_desk (
 
 -- GUESTS TABLE (Guest Portal Users & Customer Records)
 CREATE TABLE IF NOT EXISTS guests (
-    guest_id SERIAL PRIMARY KEY,
+    guest_id VARCHAR(10) PRIMARY KEY DEFAULT generate_guest_id(),
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL CHECK (
-        LENGTH(password) >= 6 AND
+        LENGTH(password) >= 8 AND
         password ~ '[A-Z]' AND
         password ~ '[a-z]' AND
         password ~ '[0-9]' AND
@@ -75,7 +163,7 @@ CREATE TABLE IF NOT EXISTS guests (
 
 
 -- =====================================================
--- PART 2: BUSINESS DATA TABLES
+-- PART 4: BUSINESS DATA TABLES
 -- =====================================================
 
 -- ROOMS TABLE
@@ -90,7 +178,7 @@ CREATE TABLE IF NOT EXISTS rooms (
 
 -- STAFF TABLE (Hotel employees - housekeeping, maintenance, etc.)
 CREATE TABLE IF NOT EXISTS staff (
-    staff_id SERIAL PRIMARY KEY,
+    staff_id VARCHAR(10) PRIMARY KEY DEFAULT generate_staff_id(),
     first_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(first_name)) >= 2),
     last_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(last_name)) >= 2),
     role VARCHAR(20) NOT NULL CHECK (role IN ('Manager', 'Receptionist', 'Concierge', 'Housekeeping', 'Maintenance', 'Front Desk')),
@@ -99,8 +187,8 @@ CREATE TABLE IF NOT EXISTS staff (
 
 -- RESERVATIONS TABLE
 CREATE TABLE IF NOT EXISTS reservations (
-    reservation_id SERIAL PRIMARY KEY,
-    guest_id INT NOT NULL REFERENCES guests(guest_id) ON DELETE CASCADE,
+    reservation_id VARCHAR(10) PRIMARY KEY DEFAULT generate_reservation_id(),
+    guest_id VARCHAR(10) NOT NULL REFERENCES guests(guest_id) ON DELETE CASCADE,
     check_in_date DATE NOT NULL,
     check_out_date DATE NOT NULL CHECK (check_out_date > check_in_date),
     check_in_time TIMESTAMPTZ,
@@ -113,22 +201,22 @@ CREATE TABLE IF NOT EXISTS reservations (
 
 -- RESERVATION_ROOM TABLE (Junction - many-to-many)
 CREATE TABLE IF NOT EXISTS reservation_room (
-    reservation_id INT REFERENCES reservations(reservation_id) ON DELETE CASCADE,
+    reservation_id VARCHAR(10) REFERENCES reservations(reservation_id) ON DELETE CASCADE,
     room_number VARCHAR(10) REFERENCES rooms(room_number) ON DELETE CASCADE,
     PRIMARY KEY (reservation_id, room_number)
 );
 
 -- RESERVATION_STAFF TABLE (Junction - many-to-many)
 CREATE TABLE IF NOT EXISTS reservation_staff (
-    reservation_id INT REFERENCES reservations(reservation_id) ON DELETE CASCADE,
-    staff_id INT REFERENCES staff(staff_id) ON DELETE CASCADE,
+    reservation_id VARCHAR(10) REFERENCES reservations(reservation_id) ON DELETE CASCADE,
+    staff_id VARCHAR(10) REFERENCES staff(staff_id) ON DELETE CASCADE,
     PRIMARY KEY (reservation_id, staff_id)
 );
 
 -- PAYMENTS TABLE
 CREATE TABLE IF NOT EXISTS payments (
-    payment_id SERIAL PRIMARY KEY,
-    reservation_id INT NOT NULL REFERENCES reservations(reservation_id) ON DELETE CASCADE,
+    payment_id VARCHAR(10) PRIMARY KEY DEFAULT generate_payment_id(),
+    reservation_id VARCHAR(10) NOT NULL REFERENCES reservations(reservation_id) ON DELETE CASCADE,
     payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
     amount_paid DECIMAL(10,2) NOT NULL CHECK (amount_paid > 0),
     payment_method VARCHAR(20) NOT NULL CHECK (payment_method IN ('Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'E-Wallet')),
@@ -136,260 +224,113 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 
--- ============================================================
--- END OF DDL
--- ============================================================
-
-
 -- =====================================================
--- PART 2: UPDATE EXISTING PASSWORDS (MIGRATION)
--- =====================================================
--- Update any existing passwords that don't meet the new
--- password requirements. This ensures data compatibility
--- before adding password constraints.
+-- PART 5: CREATE TRIGGERS FOR AUTO-ID GENERATION
 -- =====================================================
 
-UPDATE admins 
-SET password = 'TempPass123!'
-WHERE NOT (
-    LENGTH(password) >= 6 AND
-    password ~ '[A-Z]' AND
-    password ~ '[a-z]' AND
-    password ~ '[0-9]' AND
-    password ~ '[!@#$%^&*(),.?":{}|<>]'
-);
+-- Trigger for admins
+CREATE OR REPLACE FUNCTION set_admin_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.admin_id IS NULL THEN
+        NEW.admin_id := generate_admin_id();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-UPDATE front_desk 
-SET password = 'TempPass123!'
-WHERE NOT (
-    LENGTH(password) >= 6 AND
-    password ~ '[A-Z]' AND
-    password ~ '[a-z]' AND
-    password ~ '[0-9]' AND
-    password ~ '[!@#$%^&*(),.?":{}|<>]'
-);
+DROP TRIGGER IF EXISTS admins_id_trigger ON admins;
+CREATE TRIGGER admins_id_trigger
+BEFORE INSERT ON admins
+FOR EACH ROW
+EXECUTE FUNCTION set_admin_id();
 
-UPDATE guests 
-SET password = 'TempPass123!'
-WHERE NOT (
-    LENGTH(password) >= 6 AND
-    password ~ '[A-Z]' AND
-    password ~ '[a-z]' AND
-    password ~ '[0-9]' AND
-    password ~ '[!@#$%^&*(),.?":{}|<>]'
-);
+-- Trigger for front_desk
+CREATE OR REPLACE FUNCTION set_front_desk_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.front_desk_id IS NULL THEN
+        NEW.front_desk_id := generate_front_desk_id();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS front_desk_id_trigger ON front_desk;
+CREATE TRIGGER front_desk_id_trigger
+BEFORE INSERT ON front_desk
+FOR EACH ROW
+EXECUTE FUNCTION set_front_desk_id();
 
--- =====================================================
--- PART 3: ADD PASSWORD CONSTRAINTS
--- =====================================================
--- Add CHECK constraints to enforce password strength
--- requirements at the database level.
--- =====================================================
+-- Trigger for guests
+CREATE OR REPLACE FUNCTION set_guest_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.guest_id IS NULL THEN
+        NEW.guest_id := generate_guest_id();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-ALTER TABLE admins 
-DROP CONSTRAINT IF EXISTS admins_password_check;
+DROP TRIGGER IF EXISTS guests_id_trigger ON guests;
+CREATE TRIGGER guests_id_trigger
+BEFORE INSERT ON guests
+FOR EACH ROW
+EXECUTE FUNCTION set_guest_id();
 
-ALTER TABLE admins 
-ADD CONSTRAINT admins_password_check CHECK (
-    LENGTH(password) >= 6 AND
-    password ~ '[A-Z]' AND
-    password ~ '[a-z]' AND
-    password ~ '[0-9]' AND
-    password ~ '[!@#$%^&*(),.?":{}|<>]'
-);
+-- Trigger for staff
+CREATE OR REPLACE FUNCTION set_staff_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.staff_id IS NULL THEN
+        NEW.staff_id := generate_staff_id();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-ALTER TABLE front_desk 
-DROP CONSTRAINT IF EXISTS front_desk_password_check;
+DROP TRIGGER IF EXISTS staff_id_trigger ON staff;
+CREATE TRIGGER staff_id_trigger
+BEFORE INSERT ON staff
+FOR EACH ROW
+EXECUTE FUNCTION set_staff_id();
 
-ALTER TABLE front_desk 
-ADD CONSTRAINT front_desk_password_check CHECK (
-    LENGTH(password) >= 6 AND
-    password ~ '[A-Z]' AND
-    password ~ '[a-z]' AND
-    password ~ '[0-9]' AND
-    password ~ '[!@#$%^&*(),.?":{}|<>]'
-);
+-- Trigger for reservations
+CREATE OR REPLACE FUNCTION set_reservation_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.reservation_id IS NULL THEN
+        NEW.reservation_id := generate_reservation_id();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-ALTER TABLE guests 
-DROP CONSTRAINT IF EXISTS guests_password_check;
+DROP TRIGGER IF EXISTS reservations_id_trigger ON reservations;
+CREATE TRIGGER reservations_id_trigger
+BEFORE INSERT ON reservations
+FOR EACH ROW
+EXECUTE FUNCTION set_reservation_id();
 
-ALTER TABLE guests 
-ADD CONSTRAINT guests_password_check CHECK (
-    LENGTH(password) >= 6 AND
-    password ~ '[A-Z]' AND
-    password ~ '[a-z]' AND
-    password ~ '[0-9]' AND
-    password ~ '[!@#$%^&*(),.?":{}|<>]'
-);
+-- Trigger for payments
+CREATE OR REPLACE FUNCTION set_payment_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.payment_id IS NULL THEN
+        NEW.payment_id := generate_payment_id();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-
--- =====================================================
--- PART 4: ROW LEVEL SECURITY POLICIES
--- =====================================================
--- Enable RLS and create policies for data access control.
--- These policies allow anon key access for application-level
--- authentication while providing a framework for future
--- enhancement with Supabase Auth or custom JWT claims.
--- =====================================================
-
--- Enable RLS on all tables
-ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
-ALTER TABLE front_desk ENABLE ROW LEVEL SECURITY;
-ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
-ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reservation_room ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reservation_staff ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
-
--- ==================
--- ADMINS TABLE POLICIES
--- ==================
-CREATE POLICY "Allow all operations on admins for anon" 
-ON admins FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on admins for authenticated" 
-ON admins FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- FRONT_DESK TABLE POLICIES
--- ==================
-CREATE POLICY "Allow all operations on front_desk for anon" 
-ON front_desk FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on front_desk for authenticated" 
-ON front_desk FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- GUESTS TABLE POLICIES
--- ==================
-CREATE POLICY "Allow all operations on guests for anon" 
-ON guests FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on guests for authenticated" 
-ON guests FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- ROOMS TABLE POLICIES
--- ==================
-CREATE POLICY "Allow read access on rooms for anon" 
-ON rooms FOR SELECT 
-TO anon 
-USING (true);
-
-CREATE POLICY "Allow all operations on rooms for anon" 
-ON rooms FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on rooms for authenticated" 
-ON rooms FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- STAFF TABLE POLICIES
--- ==================
-CREATE POLICY "Allow read access on staff for anon" 
-ON staff FOR SELECT 
-TO anon 
-USING (true);
-
-CREATE POLICY "Allow all operations on staff for anon" 
-ON staff FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on staff for authenticated" 
-ON staff FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- RESERVATIONS TABLE POLICIES
--- ==================
-CREATE POLICY "Allow all operations on reservations for anon" 
-ON reservations FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on reservations for authenticated" 
-ON reservations FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- RESERVATION_ROOM TABLE POLICIES
--- ==================
-CREATE POLICY "Allow all operations on reservation_room for anon" 
-ON reservation_room FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on reservation_room for authenticated" 
-ON reservation_room FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- RESERVATION_STAFF TABLE POLICIES
--- ==================
-CREATE POLICY "Allow all operations on reservation_staff for anon" 
-ON reservation_staff FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on reservation_staff for authenticated" 
-ON reservation_staff FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
-
--- ==================
--- PAYMENTS TABLE POLICIES
--- ==================
-CREATE POLICY "Allow all operations on payments for anon" 
-ON payments FOR ALL 
-TO anon 
-USING (true) 
-WITH CHECK (true);
-
-CREATE POLICY "Allow all operations on payments for authenticated" 
-ON payments FOR ALL 
-TO authenticated 
-USING (true) 
-WITH CHECK (true);
+DROP TRIGGER IF EXISTS payments_id_trigger ON payments;
+CREATE TRIGGER payments_id_trigger
+BEFORE INSERT ON payments
+FOR EACH ROW
+EXECUTE FUNCTION set_payment_id();
 
 
 -- ============================================================
--- Next step: Run DML.sql for seed data
+-- END OF DDL
 -- ============================================================
