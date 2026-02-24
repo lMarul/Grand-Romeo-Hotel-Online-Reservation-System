@@ -249,6 +249,7 @@ export default function GuestsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Guests Table */}
