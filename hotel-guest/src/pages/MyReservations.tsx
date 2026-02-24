@@ -365,10 +365,10 @@ export default function MyReservations() {
                 Reservations
               </span>
             </div>
-            <h2 className="font-display text-2xl lg:text-3xl font-bold text-white mb-1">
+            <h2 className="font-display text-2xl lg:text-3xl font-bold text-sidebar-foreground mb-1">
               Your Booking Overview
             </h2>
-            <p className="text-white/60">
+            <p className="text-sidebar-foreground/70">
               {reservations.length} total booking{reservations.length !== 1 ? 's' : ''} •{' '}
               {activeCount} active
             </p>
@@ -556,7 +556,7 @@ export default function MyReservations() {
                 {selectedRoomDetails && (
                   <div
                     className={cn(
-                      'rounded-xl p-4 bg-gradient-to-r text-white',
+                      'rounded-xl p-4 bg-gradient-to-r text-sidebar-foreground',
                       getRoomTypeInfo(selectedRoomDetails.room_type).gradient
                     )}
                   >
@@ -565,7 +565,7 @@ export default function MyReservations() {
                         <p className="font-display text-lg font-bold">
                           Room {selectedRoomDetails.room_number}
                         </p>
-                        <p className="text-sm text-white/80">
+                        <p className="text-sm text-sidebar-foreground/90">
                           {selectedRoomDetails.room_type}{' '}
                           {selectedRoomDetails.room_type === 'Presidential'
                             ? 'Suite'
@@ -574,7 +574,7 @@ export default function MyReservations() {
                       </div>
                       <Star className="w-4 h-4 text-red-400 fill-red-400" />
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-white/70 mt-1">
+                    <div className="flex items-center gap-3 text-xs text-sidebar-foreground/80 mt-1">
                       <span className="flex items-center gap-1">
                         <Maximize className="w-3 h-3" />{' '}
                         {getRoomTypeInfo(selectedRoomDetails.room_type).floorArea}
@@ -862,7 +862,7 @@ export default function MyReservations() {
                             info.gradient
                           )}
                         >
-                          <BedDouble className="w-6 h-6 text-white" />
+                          <BedDouble className="w-6 h-6 text-sidebar-foreground" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
@@ -964,7 +964,7 @@ export default function MyReservations() {
                 {selectedReservation.rooms?.[0]?.room && (
                   <div
                     className={cn(
-                      'rounded-xl p-4 bg-gradient-to-r text-white',
+                      'rounded-xl p-4 bg-gradient-to-r text-sidebar-foreground',
                       getRoomTypeInfo(
                         selectedReservation.rooms[0].room.room_type
                       ).gradient
@@ -976,7 +976,7 @@ export default function MyReservations() {
                           Room{' '}
                           {selectedReservation.rooms[0].room_number}
                         </p>
-                        <p className="text-sm text-white/80">
+                        <p className="text-sm text-sidebar-foreground/90">
                           {selectedReservation.rooms[0].room.room_type}{' '}
                           {selectedReservation.rooms[0].room.room_type ===
                           'Presidential'

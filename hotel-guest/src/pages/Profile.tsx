@@ -119,20 +119,20 @@ export default function Profile() {
                 Guest Profile
               </span>
             </div>
-            <h2 className="font-display text-2xl lg:text-3xl font-bold text-white">
+            <h2 className="font-display text-2xl lg:text-3xl font-bold text-sidebar-foreground">
               {user?.first_name} {user?.last_name}
             </h2>
             <div className="flex flex-wrap items-center gap-4 mt-2">
-              <span className="flex items-center gap-1.5 text-white/60 text-sm">
+              <span className="flex items-center gap-1.5 text-sidebar-foreground/80 text-sm">
                 <Mail className="w-3.5 h-3.5" />
                 {user?.email}
               </span>
-              <span className="flex items-center gap-1.5 text-white/60 text-sm">
+              <span className="flex items-center gap-1.5 text-sidebar-foreground/80 text-sm">
                 <Shield className="w-3.5 h-3.5" />
                 @{user?.username}
               </span>
               {user?.created_at && (
-                <span className="flex items-center gap-1.5 text-white/60 text-sm">
+                <span className="flex items-center gap-1.5 text-sidebar-foreground/80 text-sm">
                   <CalendarDays className="w-3.5 h-3.5" />
                   Member since{' '}
                   {format(new Date(user.created_at), 'MMM yyyy')}
@@ -143,7 +143,7 @@ export default function Profile() {
           {!editing ? (
             <Button
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10 shrink-0"
+              className="border-sidebar-foreground/20 text-sidebar-foreground hover:bg-sidebar-foreground/10 shrink-0"
               onClick={() => setEditing(true)}
             >
               Edit Profile

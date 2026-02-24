@@ -132,10 +132,10 @@ export default function Dashboard() {
               Grand Romeo Hotel
             </span>
           </div>
-          <h2 className="font-display text-3xl lg:text-4xl font-bold text-white mb-2">
+          <h2 className="font-display text-3xl lg:text-4xl font-bold text-sidebar-foreground mb-2">
             Welcome back, {user?.first_name}!
           </h2>
-          <p className="text-white/70 text-lg max-w-xl mb-6">
+          <p className="text-sidebar-foreground/80 text-lg max-w-xl mb-6">
             Experience world-class hospitality. Manage your reservations, explore
             our rooms, and make your next stay unforgettable.
           </p>
@@ -150,7 +150,7 @@ export default function Dashboard() {
             <Button
               variant="secondary"
               onClick={() => navigate('/rooms')}
-              className="bg-white/10 hover:bg-white/20 text-white border-0 h-11"
+              className="bg-sidebar-foreground/10 hover:bg-sidebar-foreground/20 text-sidebar-foreground border-0 h-11"
             >
               <BedDouble className="w-4 h-4 mr-2" />
               Browse Rooms
@@ -325,7 +325,7 @@ export default function Dashboard() {
                     info.gradient
                   )}
                 >
-                  <div className="text-center text-white">
+                  <div className="text-center text-sidebar-foreground">
                     <Star className="w-5 h-5 mx-auto mb-1 text-amber-300 fill-amber-300" />
                     <span className="text-xs uppercase tracking-wider opacity-80">
                       {info.tagline}
@@ -428,7 +428,7 @@ export default function Dashboard() {
                           info?.gradient || 'from-slate-600 to-slate-800'
                         )}
                       >
-                        <BedDouble className="w-5 h-5 text-white" />
+                        <BedDouble className="w-5 h-5 text-sidebar-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">

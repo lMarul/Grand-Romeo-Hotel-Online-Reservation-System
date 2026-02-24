@@ -87,10 +87,10 @@ export default function RoomsPage() {
               Exquisite Accommodations
             </span>
           </div>
-          <h2 className="font-display text-3xl lg:text-4xl font-bold text-white mb-3">
+          <h2 className="font-display text-3xl lg:text-4xl font-bold text-sidebar-foreground mb-3">
             Unwind in Our Exquisite Rooms
           </h2>
-          <p className="text-white/70 text-lg leading-relaxed">
+          <p className="text-sidebar-foreground/80 text-lg leading-relaxed">
             Step into a world of refined elegance and ultimate comfort. Each space
             is meticulously designed to offer a serene retreat, from our welcoming
             Standard rooms to the magnificent Presidential Suite.
@@ -100,23 +100,23 @@ export default function RoomsPage() {
               <p className="text-2xl font-display font-bold text-red-500">
                 {rooms.length}
               </p>
-              <p className="text-xs text-white/50 uppercase tracking-wider">
+              <p className="text-xs text-sidebar-foreground/60 uppercase tracking-wider">
                 Rooms Available
               </p>
             </div>
-            <div className="w-px h-10 bg-white/20" />
+            <div className="w-px h-10 bg-sidebar-foreground/20" />
             <div className="text-center">
               <p className="text-2xl font-display font-bold text-red-500">
                 {Object.keys(roomsByType).length}
               </p>
-              <p className="text-xs text-white/50 uppercase tracking-wider">
+              <p className="text-xs text-sidebar-foreground/60 uppercase tracking-wider">
                 Room Categories
               </p>
             </div>
-            <div className="w-px h-10 bg-white/20" />
+            <div className="w-px h-10 bg-sidebar-foreground/20" />
             <div className="text-center">
               <p className="text-2xl font-display font-bold text-red-500">5★</p>
-              <p className="text-xs text-white/50 uppercase tracking-wider">
+              <p className="text-xs text-sidebar-foreground/60 uppercase tracking-wider">
                 Hotel Rating
               </p>
             </div>
@@ -194,7 +194,7 @@ export default function RoomsPage() {
                   className={cn(
                     'relative overflow-hidden rounded-2xl p-6 lg:p-8 mb-6 bg-gradient-to-r',
                     info.gradient,
-                    'text-white'
+                    'text-sidebar-foreground'
                   )}
                 >
                   <div className="absolute inset-0 bg-black/10" />
@@ -203,7 +203,7 @@ export default function RoomsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Star className="w-4 h-4 text-red-400 fill-red-400" />
-                          <span className="text-white/80 text-sm font-medium uppercase tracking-wider">
+                          <span className="text-sidebar-foreground/90 text-sm font-medium uppercase tracking-wider">
                             {info.tagline}
                           </span>
                         </div>
@@ -212,33 +212,33 @@ export default function RoomsPage() {
                             ? 'Presidential Suite'
                             : `${type} Room`}
                         </h3>
-                        <p className="text-white/80 leading-relaxed max-w-xl">
+                        <p className="text-sidebar-foreground/90 leading-relaxed max-w-xl">
                           {info.description}
                         </p>
                         <div className="flex flex-wrap items-center gap-4 mt-4">
-                          <div className="flex items-center gap-1.5 text-sm text-white/70">
+                          <div className="flex items-center gap-1.5 text-sm text-sidebar-foreground/80">
                             <Maximize className="w-4 h-4" />
                             {info.floorArea}
                           </div>
-                          <div className="flex items-center gap-1.5 text-sm text-white/70">
+                          <div className="flex items-center gap-1.5 text-sm text-sidebar-foreground/80">
                             <BedDouble className="w-4 h-4" />
                             {info.bedType}
                           </div>
-                          <div className="flex items-center gap-1.5 text-sm text-white/70">
+                          <div className="flex items-center gap-1.5 text-sm text-sidebar-foreground/80">
                             <Users className="w-4 h-4" />
                             {info.maxOccupancy}
                           </div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-white/60 text-sm">Starting from</p>
+                        <p className="text-sidebar-foreground/70 text-sm">Starting from</p>
                         <p className="font-display text-3xl lg:text-4xl font-bold">
                           {info.priceRange}
                         </p>
-                        <p className="text-white/60 text-sm">per night</p>
+                        <p className="text-sidebar-foreground/70 text-sm">per night</p>
                         <Button
                           variant="secondary"
-                          className="mt-3 bg-white/20 hover:bg-white/30 text-white border-0"
+                          className="mt-3 bg-sidebar-foreground/20 hover:bg-sidebar-foreground/30 text-sidebar-foreground border-0"
                           onClick={() => setSelectedType(type)}
                         >
                           <Eye className="w-4 h-4 mr-2" />
@@ -358,38 +358,38 @@ export default function RoomsPage() {
               <DialogHeader>
                 <div
                   className={cn(
-                    'rounded-xl p-6 mb-4 bg-gradient-to-r text-white -mx-6 -mt-6',
+                    'rounded-xl p-6 mb-4 bg-gradient-to-r text-sidebar-foreground -mx-6 -mt-6',
                     selectedTypeInfo.gradient
                   )}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <Star className="w-4 h-4 text-red-400 fill-red-400" />
-                    <span className="text-white/80 text-sm uppercase tracking-wider">
+                    <span className="text-sidebar-foreground/90 text-sm uppercase tracking-wider">
                       {selectedTypeInfo.tagline}
                     </span>
                   </div>
-                  <DialogTitle className="font-display text-2xl lg:text-3xl font-bold text-white">
+                  <DialogTitle className="font-display text-2xl lg:text-3xl font-bold text-sidebar-foreground">
                     {selectedType === 'Presidential'
                       ? 'Presidential Suite'
                       : `${selectedType} Room`}
                   </DialogTitle>
                   <div className="flex items-center gap-4 mt-3">
-                    <span className="flex items-center gap-1 text-sm text-white/70">
+                    <span className="flex items-center gap-1 text-sm text-sidebar-foreground/80">
                       <Maximize className="w-4 h-4" />{' '}
                       {selectedTypeInfo.floorArea}
                     </span>
-                    <span className="flex items-center gap-1 text-sm text-white/70">
+                    <span className="flex items-center gap-1 text-sm text-sidebar-foreground/80">
                       <BedDouble className="w-4 h-4" />{' '}
                       {selectedTypeInfo.bedType}
                     </span>
-                    <span className="flex items-center gap-1 text-sm text-white/70">
+                    <span className="flex items-center gap-1 text-sm text-sidebar-foreground/80">
                       <Users className="w-4 h-4" />{' '}
                       {selectedTypeInfo.maxOccupancy}
                     </span>
                   </div>
                   <p className="text-3xl font-display font-bold mt-4">
                     {selectedTypeInfo.priceRange}
-                    <span className="text-base font-normal text-white/60">
+                    <span className="text-base font-normal text-sidebar-foreground/70">
                       {' '}
                       / night
                     </span>
