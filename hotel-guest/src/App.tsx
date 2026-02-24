@@ -5,8 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
-import RoomsPage from "./pages/Rooms";
-import MyReservationsPage from "./pages/MyReservations";
+import RoomsPage from "./pages/Rooms";import BookRoom from './pages/BookRoom';import MyReservationsPage from "./pages/MyReservations";
 import ProfilePage from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -62,6 +61,7 @@ const AppRoutes = () => (
     <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
     <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+    <Route path="/book/:roomNumber" element={<ProtectedRoute><BookRoom /></ProtectedRoute>} />
     <Route path="/my-reservations" element={<ProtectedRoute><MyReservationsPage /></ProtectedRoute>} />
     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />

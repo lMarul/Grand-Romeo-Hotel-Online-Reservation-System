@@ -82,8 +82,8 @@ export default function RoomsPage() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzMuMzEzIDAgNi0yLjY4NyA2LTZIMGY2IDAgNi0yLjY4NyA2LTZzLTIuNjg3LTYtNi02LTYgMi42ODctNiA2IDIuNjg3IDYgNiA2eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
         <div className="relative z-10 max-w-2xl">
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <span className="text-amber-400 text-sm font-medium uppercase tracking-wider">
+            <Sparkles className="w-5 h-5 text-red-500" />
+            <span className="text-red-500 text-sm font-medium uppercase tracking-wider">
               Exquisite Accommodations
             </span>
           </div>
@@ -97,7 +97,7 @@ export default function RoomsPage() {
           </p>
           <div className="flex items-center gap-6 mt-6">
             <div className="text-center">
-              <p className="text-2xl font-display font-bold text-amber-400">
+              <p className="text-2xl font-display font-bold text-red-500">
                 {rooms.length}
               </p>
               <p className="text-xs text-white/50 uppercase tracking-wider">
@@ -106,7 +106,7 @@ export default function RoomsPage() {
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div className="text-center">
-              <p className="text-2xl font-display font-bold text-amber-400">
+              <p className="text-2xl font-display font-bold text-red-500">
                 {Object.keys(roomsByType).length}
               </p>
               <p className="text-xs text-white/50 uppercase tracking-wider">
@@ -115,7 +115,7 @@ export default function RoomsPage() {
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div className="text-center">
-              <p className="text-2xl font-display font-bold text-amber-400">5★</p>
+              <p className="text-2xl font-display font-bold text-red-500">5★</p>
               <p className="text-xs text-white/50 uppercase tracking-wider">
                 Hotel Rating
               </p>
@@ -133,7 +133,7 @@ export default function RoomsPage() {
             onClick={() => setFilterType('all')}
             className={cn(
               filterType === 'all' &&
-                'bg-gradient-gold text-primary-foreground shadow-gold'
+                'bg-gradient-red text-primary-foreground shadow-red'
             )}
           >
             All Categories
@@ -148,7 +148,7 @@ export default function RoomsPage() {
                 onClick={() => setFilterType(type)}
                 className={cn(
                   filterType === type &&
-                    'bg-gradient-gold text-primary-foreground shadow-gold'
+                    'bg-gradient-red text-primary-foreground shadow-red'
                 )}
               >
                 {type}
@@ -202,7 +202,7 @@ export default function RoomsPage() {
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
+                          <Star className="w-4 h-4 text-red-400 fill-red-400" />
                           <span className="text-white/80 text-sm font-medium uppercase tracking-wider">
                             {info.tagline}
                           </span>
@@ -322,8 +322,8 @@ export default function RoomsPage() {
                             </div>
                             <Button
                               size="sm"
-                              onClick={() => navigate('/my-reservations')}
-                              className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold"
+                              onClick={() => navigate(`/book/${room.room_number}`)}
+                              className="bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red"
                             >
                               Book Now
                               <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -363,7 +363,7 @@ export default function RoomsPage() {
                   )}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
+                    <Star className="w-4 h-4 text-red-400 fill-red-400" />
                     <span className="text-white/80 text-sm uppercase tracking-wider">
                       {selectedTypeInfo.tagline}
                     </span>
@@ -448,7 +448,11 @@ export default function RoomsPage() {
                       {selectedTypeRooms.map((room) => (
                         <div
                           key={room.room_number}
-                          className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors"
+                          className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:border-primary hover:bg-accent cursor-pointer transition-all"
+                          onClick={() => {
+                            setSelectedType(null);
+                            navigate(`/book/${room.room_number}`);
+                          }}
                         >
                           <div>
                             <p className="font-medium text-sm">
@@ -458,7 +462,7 @@ export default function RoomsPage() {
                               Fits {room.capacity}
                             </p>
                           </div>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <ArrowRight className="w-4 h-4 text-primary" />
                         </div>
                       ))}
                     </div>
@@ -470,18 +474,8 @@ export default function RoomsPage() {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button
-                    className="flex-1 bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold h-11"
-                    onClick={() => {
-                      setSelectedType(null);
-                      navigate('/my-reservations');
-                    }}
-                  >
-                    Book This Room
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                  <Button
                     variant="outline"
-                    className="h-11"
+                    className="flex-1 h-11"
                     onClick={() => setSelectedType(null)}
                   >
                     Close

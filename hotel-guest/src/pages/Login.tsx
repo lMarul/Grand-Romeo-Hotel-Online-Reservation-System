@@ -35,7 +35,7 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzMuMzEzIDAgNi0yLjY4NyA2LTZIMGY2IDAgNi0yLjY4NyA2LTZzLTIuNjg3LTYtNi02LTYgMi42ODctNiA2IDIuNjg3IDYgNiA2eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
         <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
-          <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-gold shadow-gold mx-auto mb-8">
+          <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-red shadow-red mx-auto mb-8">
             <Hotel className="w-10 h-10 text-sidebar-primary-foreground" />
           </div>
           <h1 className="font-display text-4xl font-bold text-sidebar-foreground mb-2">
@@ -44,9 +44,9 @@ export default function Login() {
           <p className="text-sidebar-foreground/60 text-lg mb-1 italic">
             Where Elegance Meets Comfort
           </p>
-          <div className="flex items-center gap-1 text-amber-400 mb-10">
+          <div className="flex items-center gap-1 text-red-500 mb-10">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 fill-amber-400" />
+              <Star key={i} className="w-4 h-4 fill-red-500" />
             ))}
           </div>
 
@@ -58,7 +58,7 @@ export default function Login() {
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3 text-sidebar-foreground/70">
                 <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-amber-400" />
+                  <Icon className="w-4 h-4 text-red-500" />
                 </div>
                 <span className="text-sm">{text}</span>
               </div>
@@ -75,7 +75,7 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-gold shadow-gold">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-red shadow-red">
               <Hotel className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
@@ -131,7 +131,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold"
+              className="w-full h-11 bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red"
               disabled={loading}
             >
               {loading ? (

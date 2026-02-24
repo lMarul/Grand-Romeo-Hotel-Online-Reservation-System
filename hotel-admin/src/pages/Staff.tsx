@@ -38,7 +38,8 @@ import { useAuth } from '@/contexts/AuthContext';
 const roleStyles: Record<StaffRole, string> = {
   'Manager': 'bg-primary/10 text-primary border-primary/30',
   'Receptionist': 'bg-info/10 text-info border-info/30',
-  'Concierge': 'bg-gold/20 text-gold-dark border-gold/30',
+  'Front Desk': 'bg-purple-500/10 text-purple-700 border-purple-500/30',
+  'Concierge': 'bg-red/20 text-red-dark border-red/30',
   'Housekeeping': 'bg-success/10 text-success border-success/30',
   'Maintenance': 'bg-warning/10 text-warning border-warning/30',
 };
@@ -46,6 +47,7 @@ const roleStyles: Record<StaffRole, string> = {
 const roleIcons: Record<StaffRole, typeof UserCog> = {
   'Manager': UserCog,
   'Receptionist': Users,
+  'Front Desk': Users,
   'Concierge': ConciergeBell,
   'Housekeeping': Briefcase,
   'Maintenance': Wrench,
@@ -73,7 +75,7 @@ export default function StaffPage() {
 
   const loadStaff = async () => {
     try {
-      const data = await staffService.getAll();
+      const data = await staffService.getAllIncludingFrontDesk();
       setStaff(data);
     } catch (err) {
       console.error('Error loading staff:', err);
@@ -191,6 +193,7 @@ export default function StaffPage() {
               <SelectItem value="all">All Roles</SelectItem>
               <SelectItem value="Manager">Manager</SelectItem>
               <SelectItem value="Receptionist">Receptionist</SelectItem>
+              <SelectItem value="Front Desk">Front Desk</SelectItem>
               <SelectItem value="Concierge">Concierge</SelectItem>
               <SelectItem value="Housekeeping">Housekeeping</SelectItem>
               <SelectItem value="Maintenance">Maintenance</SelectItem>
@@ -201,7 +204,7 @@ export default function StaffPage() {
         {isAdmin && (
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold">
+            <Button className="bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red">
               <Plus className="w-4 h-4 mr-2" />Add Staff
             </Button>
           </DialogTrigger>
@@ -243,7 +246,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-              <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground" onClick={handleCreate} disabled={saving}>
+              <Button className="bg-gradient-red hover:opacity-90 text-primary-foreground" onClick={handleCreate} disabled={saving}>
                 {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding...</> : 'Add Staff'}
               </Button>
             </DialogFooter>
@@ -393,7 +396,7 @@ export default function StaffPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground" onClick={handleEdit} disabled={saving}>
+            <Button className="bg-gradient-red hover:opacity-90 text-primary-foreground" onClick={handleEdit} disabled={saving}>
               {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save Changes'}
             </Button>
           </DialogFooter>

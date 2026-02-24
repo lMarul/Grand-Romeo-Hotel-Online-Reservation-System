@@ -109,13 +109,13 @@ export default function Profile() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzMuMzEzIDAgNi0yLjY4NyA2LTZIMGY2IDAgNi0yLjY4NyA2LTZzLTIuNjg3LTYtNi02LTYgMi42ODctNiA2IDIuNjg3IDYgNiA2eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
           {/* Avatar */}
-          <div className="w-20 h-20 rounded-2xl bg-gradient-gold shadow-gold flex items-center justify-center text-2xl font-display font-bold text-primary-foreground">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-red shadow-red flex items-center justify-center text-2xl font-display font-bold text-primary-foreground">
             {initials}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-400 text-xs font-medium uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-red-500" />
+              <span className="text-red-500 text-xs font-medium uppercase tracking-wider">
                 Guest Profile
               </span>
             </div>
@@ -151,7 +151,7 @@ export default function Profile() {
           ) : (
             <Badge
               variant="outline"
-              className="border-amber-400/50 text-amber-400 shrink-0"
+              className="border-red-500/50 text-red-500 shrink-0"
             >
               Editing
             </Badge>
@@ -347,7 +347,7 @@ export default function Profile() {
                   <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold"
+                    className="bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red"
                   >
                     {saving ? (
                       <>
@@ -393,7 +393,7 @@ export default function Profile() {
                   <span className="text-sm text-muted-foreground">
                     Role
                   </span>
-                  <Badge className="bg-gradient-gold text-primary-foreground">
+                  <Badge className="bg-gradient-red text-primary-foreground">
                     Guest
                   </Badge>
                 </div>

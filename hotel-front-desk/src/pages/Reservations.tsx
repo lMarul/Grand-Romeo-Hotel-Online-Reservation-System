@@ -37,11 +37,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 
 const statusStyles: Record<ReservationStatus, string> = {
+  'Pending Payment': 'bg-amber-500/10 text-amber-700 border-amber-500/30',
+  'Confirmed': 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30',
   'Reserved': 'bg-info/10 text-info border-info/30',
   'Checked-In': 'bg-success/10 text-success border-success/30',
   'Checked-Out': 'bg-muted text-muted-foreground border-border',
   'Cancelled': 'bg-destructive/10 text-destructive border-destructive/30',
   'No-Show': 'bg-warning/10 text-warning border-warning/30',
+  'Refunded': 'bg-purple-500/10 text-purple-700 border-purple-500/30',
 };
 
 export default function ReservationsPage() {

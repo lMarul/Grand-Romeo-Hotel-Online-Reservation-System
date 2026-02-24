@@ -153,6 +153,40 @@ export const staffService = {
     return data as Staff[];
   },
 
+  async getAllIncludingFrontDesk(): Promise<Staff[]> {
+    // Get regular staff
+    const { data: staffData, error: staffError } = await supabase
+      .from('staff')
+      .select('*')
+      .order('staff_id', { ascending: true });
+    if (staffError) throw staffError;
+
+    // Get front desk users and transform them to staff format
+    const { data: frontDeskData, error: frontDeskError } = await supabase
+      .from('front_desk')
+      .select('*')
+      .order('front_desk_id', { ascending: true });
+    if (frontDeskError) throw frontDeskError;
+
+    // Transform front desk to staff format
+    const frontDeskAsStaff: Staff[] = (frontDeskData || []).map(fd => ({
+      staff_id: fd.front_desk_id, // Use front_desk_id as staff_id for display
+      first_name: fd.first_name,
+      last_name: fd.last_name,
+      role: 'Front Desk' as any,
+      contact_number: fd.contact_number,
+      email: fd.email,
+      hire_date: fd.created_at,
+      salary: null,
+      // Include additional metadata to identify source
+      _source: 'front_desk' as any,
+      _original_id: fd.front_desk_id as any,
+    }));
+
+    // Combine both arrays
+    return [...(staffData || []), ...frontDeskAsStaff];
+  },
+
   async getById(id: number): Promise<Staff> {
     const { data, error } = await supabase
       .from('staff')

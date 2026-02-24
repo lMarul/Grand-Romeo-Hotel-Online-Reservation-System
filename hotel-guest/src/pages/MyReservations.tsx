@@ -51,6 +51,18 @@ const statusConfig: Record<
   string,
   { label: string; icon: typeof Clock; color: string; bgColor: string }
 > = {
+  'Pending Payment': {
+    label: 'Pending Payment',
+    icon: Clock,
+    color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    bgColor: 'from-amber-500/5 to-amber-600/5 border-amber-500/20',
+  },
+  Confirmed: {
+    label: 'Confirmed',
+    icon: CheckCircle2,
+    color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+    bgColor: 'from-emerald-500/5 to-emerald-600/5 border-emerald-500/20',
+  },
   Reserved: {
     label: 'Reserved',
     icon: Clock,
@@ -78,8 +90,14 @@ const statusConfig: Record<
   'No-Show': {
     label: 'No-Show',
     icon: XCircle,
-    color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-    bgColor: 'from-amber-500/5 to-amber-600/5 border-amber-500/20',
+    color: 'bg-red-500/10 text-red-600 border-red-500/20',
+    bgColor: 'from-red-500/5 to-red-600/5 border-red-500/20',
+  },
+  Refunded: {
+    label: 'Refunded',
+    icon: XCircle,
+    color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    bgColor: 'from-purple-500/5 to-purple-600/5 border-purple-500/20',
   },
 };
 
@@ -342,8 +360,8 @@ export default function MyReservations() {
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <span className="text-amber-400 text-sm font-medium uppercase tracking-wider">
+              <Sparkles className="w-5 h-5 text-red-500" />
+              <span className="text-red-500 text-sm font-medium uppercase tracking-wider">
                 Reservations
               </span>
             </div>
@@ -357,7 +375,7 @@ export default function MyReservations() {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold h-11 shrink-0">
+              <Button className="bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red h-11 shrink-0">
                 <Plus className="w-4 h-4 mr-2" />
                 Book a Room
               </Button>
@@ -374,7 +392,7 @@ export default function MyReservations() {
               <div className="space-y-5 py-4 max-h-[60vh] overflow-y-auto">
                 {/* Guest Info (read-only) */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                  <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground text-sm font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-red flex items-center justify-center text-primary-foreground text-sm font-semibold">
                     {user?.first_name?.[0]}
                     {user?.last_name?.[0]}
                   </div>
@@ -554,7 +572,7 @@ export default function MyReservations() {
                             : 'Room'}
                         </p>
                       </div>
-                      <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
+                      <Star className="w-4 h-4 text-red-400 fill-red-400" />
                     </div>
                     <div className="flex items-center gap-3 text-xs text-white/70 mt-1">
                       <span className="flex items-center gap-1">
@@ -667,7 +685,7 @@ export default function MyReservations() {
                 <Button
                   onClick={handleCreateReservation}
                   disabled={saving || filteredAvailableRooms.length === 0}
-                  className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold"
+                  className="bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red"
                 >
                   {saving ? (
                     <>
@@ -762,7 +780,7 @@ export default function MyReservations() {
                 onClick={() => setFilterStatus(status)}
                 className={cn(
                   filterStatus === status &&
-                    'bg-gradient-gold text-primary-foreground shadow-gold'
+                    'bg-gradient-red text-primary-foreground shadow-red'
                 )}
               >
                 {status === 'all' ? 'All' : statusConfig[status]?.label || status}
@@ -794,7 +812,7 @@ export default function MyReservations() {
           {filterStatus === 'all' && (
             <Button
               onClick={() => setDialogOpen(true)}
-              className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold"
+              className="bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red"
             >
               <Plus className="w-4 h-4 mr-2" />
               Book a Room

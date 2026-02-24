@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS staff (
     staff_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(first_name)) >= 2),
     last_name VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(last_name)) >= 2),
-    role VARCHAR(20) NOT NULL CHECK (role IN ('Manager', 'Receptionist', 'Concierge', 'Housekeeping', 'Maintenance')),
+    role VARCHAR(20) NOT NULL CHECK (role IN ('Manager', 'Receptionist', 'Concierge', 'Housekeeping', 'Maintenance', 'Front Desk')),
     contact_number VARCHAR(15) CHECK (contact_number ~* '^[0-9+\-() ]+$')
 );
 
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     check_out_time TIMESTAMPTZ,
     total_guests INT NOT NULL DEFAULT 1 CHECK (total_guests >= 1 AND total_guests <= 20),
     special_requests TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'Reserved' CHECK (status IN ('Reserved', 'Checked-In', 'Checked-Out', 'Cancelled', 'No-Show')),
+    status VARCHAR(20) NOT NULL DEFAULT 'Reserved' CHECK (status IN ('Pending Payment', 'Confirmed', 'Reserved', 'Checked-In', 'Checked-Out', 'Cancelled', 'No-Show', 'Refunded')),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

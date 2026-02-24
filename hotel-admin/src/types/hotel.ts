@@ -45,6 +45,10 @@ export interface Guest {
   state_province: string | null;
   zip_code: string | null;
   country: string | null;
+  is_walk_in: boolean;
+  preferences: string | null;
+  loyalty_points: number;
+  vip_status: boolean;
   created_at: string;
 }
 
@@ -73,6 +77,12 @@ export interface Room {
   capacity: number;
   daily_rate: number;
   status: RoomStatus;
+  image_url: string | null;
+  description: string | null;
+  amenities: string[];
+  floor_number: number | null;
+  room_size_sqft: number | null;
+  last_maintenance_date: string | null;
 }
 
 export type RoomType = 'Standard' | 'Deluxe' | 'Suite' | 'Presidential';
@@ -92,7 +102,7 @@ export interface Staff {
   contact_number: string | null;
 }
 
-export type StaffRole = 'Manager' | 'Receptionist' | 'Housekeeping' | 'Concierge' | 'Maintenance';
+export type StaffRole = 'Manager' | 'Receptionist' | 'Housekeeping' | 'Concierge' | 'Maintenance' | 'Front Desk';
 
 // =====================
 // RESERVATIONS TABLE
@@ -107,14 +117,19 @@ export interface Reservation {
   total_guests: number;
   special_requests: string | null;
   status: ReservationStatus;
+  is_walk_in: boolean;
+  created_by_admin_id: number | null;
+  created_by_front_desk_id: number | null;
   created_at: string;
+  updated_at: string | null;
+  updated_by: string | null;
   // Joined data (from related tables)
   guest?: Guest;
   rooms?: ReservationRoom[];
   staff?: ReservationStaff[];
 }
 
-export type ReservationStatus = 'Reserved' | 'Checked-In' | 'Checked-Out' | 'Cancelled' | 'No-Show';
+export type ReservationStatus = 'Pending Payment' | 'Confirmed' | 'Reserved' | 'Checked-In' | 'Checked-Out' | 'Cancelled' | 'No-Show' | 'Refunded';
 
 // =====================
 // RESERVATION_ROOM TABLE (Junction)
@@ -148,11 +163,17 @@ export interface Payment {
   amount_paid: number;
   payment_method: PaymentMethod;
   transaction_id: string | null;
+  payment_status: PaymentStatus;
+  refund_amount: number;
+  notes: string | null;
+  receipt_number: string | null;
+  created_at: string;
   // Joined data
   reservation?: Reservation;
 }
 
 export type PaymentMethod = 'Cash' | 'Credit Card' | 'Debit Card' | 'Bank Transfer' | 'E-Wallet';
+export type PaymentStatus = 'Pending' | 'Completed' | 'Failed' | 'Refunded';
 
 // =====================
 // DASHBOARD STATS

@@ -84,21 +84,23 @@ ON CONFLICT (staff_id) DO NOTHING;
 
 SELECT setval('staff_staff_id_seq', 7, true);
 
--- RESERVATIONS
+-- RESERVATIONS (Demonstrating all new status types)
 INSERT INTO reservations (reservation_id, guest_id, check_in_date, check_out_date, check_in_time, check_out_time, total_guests, special_requests, status) VALUES
     (1, 1, '2026-02-15', '2026-02-17', NULL, NULL, 2, 'Late check-in after 10 PM. Non-smoking room preferred.', 'Reserved'),
-    (2, 2, '2026-02-16', '2026-02-20', NULL, NULL, 3, 'Extra bed for child. High floor preferred.', 'Reserved'),
+    (2, 2, '2026-02-16', '2026-02-20', NULL, NULL, 3, 'Extra bed for child. High floor preferred.', 'Confirmed'),
     (3, 3, '2026-02-10', '2026-02-12', '2026-02-10 15:30:00+00', NULL, 4, NULL, 'Checked-In'),
     (4, 4, '2026-02-01', '2026-02-05', '2026-02-01 14:00:00+00', '2026-02-05 11:30:00+00', 2, 'Airport shuttle on arrival.', 'Checked-Out'),
-    (5, 5, '2026-02-12', '2026-02-18', NULL, NULL, 6, 'Connecting rooms please. Celebrating anniversary.', 'Reserved'),
-    (6, 6, '2026-02-20', '2026-02-22', NULL, NULL, 2, NULL, 'Reserved'),
-    (7, 7, '2026-02-25', '2026-02-28', NULL, NULL, 3, 'Early check-in if possible. Need baby crib.', 'Reserved'),
+    (5, 5, '2026-02-12', '2026-02-18', NULL, NULL, 6, 'Connecting rooms please. Celebrating anniversary.', 'Confirmed'),
+    (6, 6, '2026-02-20', '2026-02-22', NULL, NULL, 2, NULL, 'Pending Payment'),
+    (7, 7, '2026-02-25', '2026-02-28', NULL, NULL, 3, 'Early check-in if possible. Need baby crib.', 'Confirmed'),
     (8, 8, '2026-01-20', '2026-01-22', NULL, NULL, 2, NULL, 'No-Show'),
     (9, 9, '2026-02-05', '2026-02-07', '2026-02-05 14:15:00+00', '2026-02-07 10:45:00+00', 1, 'Quiet room away from elevator.', 'Checked-Out'),
-    (10, 10, '2026-02-28', '2026-03-03', NULL, NULL, 2, 'Vegetarian meal options. Late checkout requested.', 'Reserved')
+    (10, 10, '2026-02-28', '2026-03-03', NULL, NULL, 2, 'Vegetarian meal options. Late checkout requested.', 'Confirmed'),
+    (11, 1, '2026-01-15', '2026-01-17', NULL, NULL, 2, 'Cancelled due to emergency.', 'Refunded'),
+    (12, 3, '2026-03-01', '2026-03-05', NULL, NULL, 2, 'Business trip reservation.', 'Pending Payment')
 ON CONFLICT (reservation_id) DO NOTHING;
 
-SELECT setval('reservations_reservation_id_seq', 10, true);
+SELECT setval('reservations_reservation_id_seq', 12, true);
 
 -- RESERVATION_ROOM (Which rooms are booked for each reservation)
 INSERT INTO reservation_room (reservation_id, room_number) VALUES
@@ -112,7 +114,9 @@ INSERT INTO reservation_room (reservation_id, room_number) VALUES
     (7, '204'),
     (8, '104'),
     (9, '105'),
-    (10, '302')
+    (10, '302'),
+    (11, '101'),
+    (12, '202')
 ON CONFLICT DO NOTHING;
 
 -- RESERVATION_STAFF (Which staff are assigned to each reservation)
@@ -125,20 +129,24 @@ INSERT INTO reservation_staff (reservation_id, staff_id) VALUES
     (5, 4),
     (6, 2),
     (7, 3),
-    (8, 2),
+    (8, 2),,
+    (11, 2),
+    (12, 3)
     (9, 3),
     (10, 2)
-ON CONFLICT DO NOTHING;
-
--- PAYMENTS
+ON CONFLICT (Including examples with new payment_status field)
 INSERT INTO payments (payment_id, reservation_id, payment_date, amount_paid, payment_method, transaction_id) VALUES
     (1, 3, '2026-02-10', 16000.00, 'Credit Card', 'TXN001'),
     (2, 4, '2026-02-01', 9000.00, 'Cash', 'TXN002'),
     (3, 4, '2026-02-03', 9000.00, 'Cash', 'TXN003'),
     (4, 5, '2026-02-12', 90000.00, 'Bank Transfer', 'TXN004'),
     (5, 9, '2026-02-05', 5000.00, 'E-Wallet', 'TXN005'),
-    (6, 10, '2026-02-27', 8000.00, 'Credit Card', 'TXN006')
+    (6, 10, '2026-02-27', 8000.00, 'Credit Card', 'TXN006'),
+    (7, 2, '2026-02-16', 13500.00, 'Credit Card', 'TXN007'),
+    (8, 7, '2026-02-24', 13500.00, 'Debit Card', 'TXN008')
 ON CONFLICT (payment_id) DO NOTHING;
+
+SELECT setval('payments_payment_id_seq', 8
 
 SELECT setval('payments_payment_id_seq', 6, true);
 

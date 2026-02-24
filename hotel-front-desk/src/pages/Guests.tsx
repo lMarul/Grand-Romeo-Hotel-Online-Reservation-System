@@ -24,6 +24,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Plus, Search, Phone, MapPin, Pencil, Trash2, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { WalkInGuestDialog } from '@/components/WalkInGuestDialog';
 
 export default function GuestsPage() {
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -176,13 +177,15 @@ export default function GuestsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search guests..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={(open) => { setIsAddDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground shadow-gold">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Guest
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <WalkInGuestDialog onGuestCreated={loadGuests} />
+          <Dialog open={isAddDialogOpen} onOpenChange={(open) => { setIsAddDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-red hover:opacity-90 text-primary-foreground shadow-red">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Online Guest
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="font-display text-xl">Add New Guest</DialogTitle>
@@ -240,12 +243,13 @@ export default function GuestsPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-              <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground" onClick={handleAddGuest} disabled={saving}>
+              <Button className="bg-gradient-red hover:opacity-90 text-primary-foreground" onClick={handleAddGuest} disabled={saving}>
                 {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adding...</> : 'Add Guest'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Guests Table */}
@@ -269,7 +273,7 @@ export default function GuestsPage() {
                 <TableCell className="font-mono text-sm">{guest.guest_id}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground text-sm font-medium">
+                    <div className="w-9 h-9 rounded-full bg-gradient-red flex items-center justify-center text-primary-foreground text-sm font-medium">
                       {guest.first_name[0]}{guest.last_name[0]}
                     </div>
                     <p className="font-medium">{guest.first_name} {guest.last_name}</p>
@@ -316,7 +320,7 @@ export default function GuestsPage() {
           {selectedGuest && (
             <div className="space-y-4 py-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground text-xl font-semibold">
+                <div className="w-16 h-16 rounded-full bg-gradient-red flex items-center justify-center text-primary-foreground text-xl font-semibold">
                   {selectedGuest.first_name[0]}{selectedGuest.last_name[0]}
                 </div>
                 <div>
@@ -394,7 +398,7 @@ export default function GuestsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button className="bg-gradient-gold hover:opacity-90 text-primary-foreground" onClick={handleEditGuest} disabled={saving}>
+            <Button className="bg-gradient-red hover:opacity-90 text-primary-foreground" onClick={handleEditGuest} disabled={saving}>
               {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save Changes'}
             </Button>
           </DialogFooter>

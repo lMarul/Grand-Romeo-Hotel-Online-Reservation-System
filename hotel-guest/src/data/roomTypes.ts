@@ -133,9 +133,9 @@ export const ROOM_TYPE_DATA: Record<string, RoomTypeInfo> = {
       'Priority restaurant reservations',
     ],
     priceRange: '₱8,000',
-    gradient: 'from-amber-600 to-amber-800',
-    accentColor: 'text-amber-600',
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    gradient: 'from-red-600 to-red-800',
+    accentColor: 'text-red-600',
+    badgeColor: 'bg-red-50 text-red-700 border-red-200',
   },
   Presidential: {
     type: 'Presidential',
@@ -165,9 +165,9 @@ export const ROOM_TYPE_DATA: Record<string, RoomTypeInfo> = {
       'In-suite check-in & check-out',
     ],
     priceRange: '₱15,000',
-    gradient: 'from-yellow-600 via-amber-500 to-yellow-700',
-    accentColor: 'text-yellow-600',
-    badgeColor: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    gradient: 'from-red-600 via-red-500 to-red-700',
+    accentColor: 'text-red-600',
+    badgeColor: 'bg-red-50 text-red-700 border-red-200',
   },
 };
 
